@@ -7,7 +7,7 @@ body {
 }
 
 .container {
-  width: 50%;
+  width: 70%; /* Increased width to accommodate two columns */
   margin: auto;
   background-color: #333;
   padding: 20px;
@@ -37,6 +37,13 @@ button:hover {
 
 p {
   font-size: 1.2em;
+}
+
+#passport-section {
+  margin-top: 20px;
+  background-color: #444;
+  padding: 15px;
+  border-radius: 8px;
 }
 
 #passport-container {

@@ -17,7 +17,8 @@ SCOPES = [
 
 CREDENTIALS_FILE = "/etc/secrets/credentials.json"
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME")
-DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID")
+PASSPORT_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_PASSPORT_FOLDER_ID")
+FLIGHT_DETAILS_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FLIGHT_DETAILS_FOLDER_ID")
 ACCESS_PASSCODE = os.getenv("ACCESS_PASSCODE")
 
 creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
@@ -52,12 +53,21 @@ def search_attendee():
             name_parts = stored_name.split()
             last_name = name_parts[-1]
             first_name = " ".join(name_parts[:-1])
+            
+            # Passport search
             passport_filename = f"{last_name}_{first_name}_{birthday}.jpg"
-
             passport_file_id = search_passport(passport_filename)
             passport_url = f"/passport/{passport_file_id}" if passport_file_id else None
 
+            # Flight details search
+            flight_details_filename = f"{last_name}_{first_name}_{birthday}_flight.pdf"
+            flight_details_file_id = search_flight_details(flight_details_filename)
+            flight_details_url = f"/flight_details/{flight_details_file_id}" if flight_details_file_id else None
+
+            # Add URLs to attendee data
             attendee["Passport URL"] = passport_url
+            attendee["Flight Details URL"] = flight_details_url
+
             return jsonify(attendee)
 
     return jsonify({"error": "Attendee not found"}), 404
@@ -73,7 +83,7 @@ def validate_passcode():
 
 def search_passport(filename):
     """Search for a passport image in Google Drive by filename."""
-    query = f"name contains '{filename}' and '{DRIVE_FOLDER_ID}' in parents"
+    query = f"name contains '{filename}' and '{PASSPORT_DRIVE_FOLDER_ID}' in parents"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
     files = results.get("files", [])
 
@@ -82,6 +92,19 @@ def search_passport(filename):
         return files[0]["id"]
 
     print("No matching passport file found.") 
+    return None
+
+def search_flight_details(filename):
+    """Search for a flight details PDF in Google Drive by filename."""
+    query = f"name contains '{filename}' and '{FLIGHT_DETAILS_DRIVE_FOLDER_ID}' in parents"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    files = results.get("files", [])
+
+    if files:
+        print(f"Found flight details file: {files[0]['name']} (ID: {files[0]['id']})")  
+        return files[0]["id"]
+
+    print("No matching flight details file found.") 
     return None
 
 @app.route("/passport/<file_id>")
@@ -95,6 +118,26 @@ def get_passport_image(file_id):
         return send_file(BytesIO(response.content), mimetype="image/jpeg")
 
     return jsonify({"error": "Image not found"}), 404
+
+@app.route("/flight_details/<file_id>")
+def download_flight_details(file_id):
+    """Fetch and serve flight details PDF from Google Drive."""
+    try:
+        file_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+        headers = {"Authorization": f"Bearer {creds.token}"}
+
+        response = requests.get(file_url, headers=headers)
+        if response.status_code == 200:
+            return send_file(
+                BytesIO(response.content), 
+                mimetype="application/pdf", 
+                as_attachment=True, 
+                download_name="flight_details.pdf"
+            )
+
+        return jsonify({"error": "Flight details not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
