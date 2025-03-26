@@ -15,6 +15,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive.readonly" 
 ]
 
+# .
+
 CREDENTIALS_FILE = "/etc/secrets/credentials.json"
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME")
 PASSPORT_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_PASSPORT_FOLDER_ID")
