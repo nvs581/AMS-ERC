@@ -8,40 +8,6 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
-    <style>
-      .details-container {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-      }
-      .details-column {
-        width: 48%;
-        background-color: #444;
-        padding: 15px;
-        border-radius: 8px;
-      }
-      .details-column h3 {
-        margin-bottom: 15px;
-        border-bottom: 2px solid #007bff;
-        padding-bottom: 10px;
-      }
-      .details-column p {
-        margin: 10px 0;
-        text-align: left;
-      }
-      .download-btn {
-        display: inline-block;
-        background-color: #007bff;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        text-decoration: none;
-        margin-top: 10px;
-      }
-      .download-btn:hover {
-        background-color: #0056b3;
-      }
-    </style>
   </head>
   <body>
     <div class="container">
@@ -49,9 +15,16 @@
       <form id="searchForm">
         <input
           type="text"
-          id="name"
-          name="name"
-          placeholder="Enter Name"
+          id="first_name"
+          name="first_name"
+          placeholder="Enter First Name"
+          required
+        />
+        <input
+          type="text"
+          id="last_name"
+          name="last_name"
+          placeholder="Enter Last Name"
           required
         />
         <input type="date" id="birthday" name="birthday" required />
@@ -79,12 +52,15 @@
         .addEventListener("submit", function (event) {
           event.preventDefault();
 
-          let name = document.getElementById("name").value;
+          let firstName = document.getElementById("first_name").value;
+          let lastName = document.getElementById("last_name").value;
           let birthday = document.getElementById("birthday").value;
 
           fetch(
-            `/search?name=${encodeURIComponent(
-              name
+            `/search?first_name=${encodeURIComponent(
+              firstName
+            )}&last_name=${encodeURIComponent(
+              lastName
             )}&birthday=${encodeURIComponent(birthday)}`
           )
             .then((response) => response.json())
@@ -94,33 +70,32 @@
                 resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
               } else {
                 resultDiv.innerHTML = `
-                  <div class="details-container">
-                    <div class="details-column">
-                      <h3>Personal Details</h3>
-                      <p><strong>Full Name:</strong> ${data.Name}</p>
-                      <p><strong>Birthday:</strong> ${data.Birthday}</p>
-                      <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
-                      <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
-                    </div>
-                    <div class="details-column">
-                      <h3>Flight Details</h3>
-                      <p>Flight details are available for download.</p>
-                      <a href="#" id="download-flight-details" class="download-btn">Download Flight Details</a>
-                    </div>
+                <div class="details-container">
+                  <div class="details-column">
+                    <h3>Personal Details</h3>
+                    <p><strong>Full Name:</strong> ${data["First Name"]} ${data["Last Name"]}</p>
+                    <p><strong>Birthday:</strong> ${data.Birthday}</p>
+                    <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
+                    <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
                   </div>
-                  <div id="passport-section">
-                    <h3>Passport Image</h3>
-                    <button id="view-passport">View Passport</button>
-                    <div id="passport-container" style="display: none;">
-                      <input type="password" id="passport-key" placeholder="Enter Passcode">
-                      <button id="submit-passport-key">Submit</button>
-                      <br>
-                      <img id="passport-image" width="200px" style="display: none; cursor: pointer;" onclick="openModal(this.src)">
-                    </div>
+                  <div class="details-column">
+                    <h3>Flight Details</h3>
+                    <p>Flight details are available for download.</p>
+                    <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
                   </div>
-                `;
+                </div>
+                <div id="passport-section">
+                  <h3>Passport Image</h3>
+                  <button id="view-passport">View Passport</button>
+                  <div id="passport-container" style="display: none;">
+                    <input type="password" id="passport-key" placeholder="Enter Passcode">
+                    <button id="submit-passport-key">Submit</button>
+                    <br>
+                    <img id="passport-image" width="200px" style="display: none; cursor: pointer;" onclick="openModal(this.src)">
+                  </div>
+                </div>
+              `;
 
-                // Passport view logic
                 document
                   .getElementById("view-passport")
                   .addEventListener("click", function () {
@@ -134,12 +109,9 @@
                   .addEventListener("click", function () {
                     let enteredKey =
                       document.getElementById("passport-key").value;
-
                     fetch("/validate_passcode", {
                       method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
+                      headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ passcode: enteredKey }),
                     })
                       .then((response) => response.json())
@@ -148,7 +120,6 @@
                           let passportImage =
                             document.getElementById("passport-image");
                           let storedPassportUrl = data["Passport URL"];
-
                           if (storedPassportUrl) {
                             passportImage.src = storedPassportUrl;
                             passportImage.style.display = "block";
@@ -159,16 +130,6 @@
                           alert("Incorrect passcode!");
                         }
                       });
-                  });
-
-                // Flight details download logic (placeholder)
-                document
-                  .getElementById("download-flight-details")
-                  .addEventListener("click", function (e) {
-                    e.preventDefault();
-                    alert(
-                      "Flight details download functionality to be implemented"
-                    );
                   });
               }
             });
