@@ -1,0 +1,19 @@
+# Ignore Python cache & virtual environments
+__pycache__/
+venv/
+*.pyc
+
+# Ignore sensitive files
+credentials.json
+.env
+
+# Ignore logs and system files
+*.log
+.DS_Store
+
+# Ignore deployment/temporary files
+*.sqlite3
+*.db
+node_modules/
+
+workingTest.py

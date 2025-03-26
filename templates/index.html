@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendee Search</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Attendee Search</h1>
+      <form id="searchForm">
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="Enter Name"
+          required
+        />
+        <input type="date" id="birthday" name="birthday" required />
+        <button type="submit">Search</button>
+      </form>
+      <div id="result"></div>
+    </div>
+
+    <div id="imageModal" class="modal" onclick="closeModal()">
+      <img id="modalImage" src="" />
+    </div>
+
+    <script>
+      function openModal(imageSrc) {
+        document.getElementById("modalImage").src = imageSrc;
+        document.getElementById("imageModal").classList.add("show");
+      }
+
+      function closeModal() {
+        document.getElementById("imageModal").classList.remove("show");
+      }
+
+      document
+        .getElementById("searchForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          let name = document.getElementById("name").value;
+          let birthday = document.getElementById("birthday").value;
+
+          fetch(
+            `/search?name=${encodeURIComponent(
+              name
+            )}&birthday=${encodeURIComponent(birthday)}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              let resultDiv = document.getElementById("result");
+              if (data.error) {
+                resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+              } else {
+                resultDiv.innerHTML = `
+                            <h3>Attendee Details</h3>
+                            <p><strong>Name:</strong> ${data.Name}</p>
+                            <p><strong>Birthday:</strong> ${data.Birthday}</p>
+                            <p><strong>Ticket ID:</strong> ${data["Ticket ID"]}</p>
+                            <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
+                            <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
+                            <p><strong>Room Type:</strong> ${data["Room Type"]}</p>
+                            <p><strong>Flight Details:</strong> ${data["Flight Details"]}</p>
+                            <p><strong>Passport Image:</strong></p>
+                            <button id="view-passport" style="display: block;">View</button>
+                            <div id="passport-container" style="display: none;">
+                                <input type="password" id="passport-key" placeholder="Enter Passcode">
+                                <button id="submit-passport-key">Submit</button>
+                                <br>
+                                <img id="passport-image" width="200px" style="display: none; cursor: pointer;" onclick="openModal(this.src)">
+                            </div>
+                        `;
+
+                document
+                  .getElementById("view-passport")
+                  .addEventListener("click", function () {
+                    document.getElementById(
+                      "passport-container"
+                    ).style.display = "block";
+                  });
+
+                document
+                  .getElementById("submit-passport-key")
+                  .addEventListener("click", function () {
+                    let enteredKey =
+                      document.getElementById("passport-key").value;
+
+                    fetch("/validate_passcode", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ passcode: enteredKey }),
+                    })
+                      .then((response) => response.json())
+                      .then((responseData) => {
+                        if (responseData.status === "success") {
+                          let passportImage =
+                            document.getElementById("passport-image");
+                          let storedPassportUrl = data["Passport URL"];
+
+                          if (storedPassportUrl) {
+                            passportImage.src = storedPassportUrl;
+                            passportImage.style.display = "block";
+                          } else {
+                            alert("No matching Passport file found.");
+                          }
+                        } else {
+                          alert("Incorrect passcode!");
+                        }
+                      });
+                  });
+              }
+            });
+        });
+    </script>
+  </body>
+</html>
