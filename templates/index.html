@@ -8,6 +8,10 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="container">
@@ -73,15 +77,23 @@
                 <div class="details-container">
                   <div class="details-column">
                     <h3>Personal Details</h3>
-                    <p><strong>Full Name:</strong> ${data["First Name"]} ${data["Last Name"]}</p>
+                    <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
                     <p><strong>Birthday:</strong> ${data.Birthday}</p>
                     <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
                     <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
                   </div>
                   <div class="details-column">
                     <h3>Flight Details</h3>
-                    <p>Flight details are available for download.</p>
-                    <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
+                    <p>${
+                      data["Flight Details URL"]
+                        ? "Flight details are available for download."
+                        : "No Data Found."
+                    }</p>
+                    ${
+                      data["Flight Details URL"]
+                        ? `<a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>`
+                        : ""
+                    }
                   </div>
                 </div>
                 <div id="passport-section">

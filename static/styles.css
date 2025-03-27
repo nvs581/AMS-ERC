@@ -1,21 +1,54 @@
+/* General Styling */
 body {
-  font-family: Arial, sans-serif;
-  background-color: #1e1e1e;
-  color: white;
-  text-align: center;
-  padding: 20px;
+  font-family: "Poppins", sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
 .container {
-  width: 70%;
-  margin: auto;
-  background-color: #333;
+  max-width: 600px;
+  background: #fff;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
-/* Two-column layout */
+/* Input Fields */
+input[type="text"],
+input[type="date"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+/* Result Styling */
 .details-container {
   display: flex;
   justify-content: space-between;
@@ -24,82 +57,76 @@ body {
 
 .details-column {
   width: 48%;
-  background-color: #444;
+  background-color: #f8f9fa;
   padding: 15px;
   border-radius: 8px;
-  text-align: left;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .details-column h3 {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  color: #007bff;
   border-bottom: 2px solid #007bff;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
 }
 
-.details-column p {
-  margin: 10px 0;
-}
-
+/* Download Button */
 .download-btn {
   display: inline-block;
-  background-color: #007bff;
+  background-color: #28a745;
   color: white;
   padding: 10px 15px;
   border-radius: 5px;
   text-decoration: none;
   margin-top: 10px;
-  transition: background-color 0.3s;
 }
 
 .download-btn:hover {
-  background-color: #0056b3;
+  background-color: #218838;
 }
 
+/* Passport Section */
 #passport-section {
   margin-top: 20px;
-  background-color: #444;
-  padding: 15px;
-  border-radius: 8px;
 }
 
 #passport-container {
+  display: none;
   text-align: center;
-  margin-top: 10px;
+}
+
+#passport-key {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
 }
 
 #passport-image {
-  display: block;
-  margin: 10px auto;
-  border-radius: 5px;
-  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+  width: 200px;
+  display: none;
   cursor: pointer;
-  transition: transform 0.3s ease-in-out;
+  border-radius: 10px;
+  transition: transform 0.3s;
 }
 
 #passport-image:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
-/* Modal for passport image */
+/* Modal */
 .modal {
   display: none;
   position: fixed;
-  z-index: 1000;
-  left: 0;
   top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.7);
   justify-content: center;
   align-items: center;
 }
 
 .modal img {
   max-width: 90%;
-  max-height: 90%;
-  border-radius: 5px;
-}
-
-.modal.show {
-  display: flex;
+  border-radius: 10px;
 }
