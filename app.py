@@ -61,13 +61,16 @@ def search_attendee():
             # Full Name
             full_name = f"{stored_first_name} {stored_last_name}"
 
+            # Convert birthday format to MMDDYYYY
+            formatted_birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d").strftime("%m%d%Y")
+
             # Passport search
-            passport_filename = f"{last_name}_{first_name}_{birthday}.jpg"
+            passport_filename = f"{first_name}{last_name}_{formatted_birthday}.jpg"
             passport_file_id = search_passport(passport_filename)
             passport_url = f"/passport/{passport_file_id}" if passport_file_id else None
 
             # Flight details search
-            flight_details_filename = f"{last_name}_{first_name}_{birthday}_flight.pdf"
+            flight_details_filename = f"{first_name}{last_name}_{formatted_birthday}_flight.pdf"
             flight_details_file_id = search_flight_details(flight_details_filename)
             flight_details_url = f"/flight_details/{flight_details_file_id}" if flight_details_file_id else None
 
@@ -84,6 +87,7 @@ def search_attendee():
             })
 
     return jsonify({"error": "Attendee not found"}), 404
+
 @app.route("/validate_passcode", methods=["POST"])
 def validate_passcode():
     data = request.json
