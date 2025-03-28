@@ -83,23 +83,42 @@
                 <div class="details-container">
                   <div class="details-column">
                     <h3>Personal Details</h3>
-                    <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
+                    <p><strong>First Name:</strong> ${data["First Name"]}</p>
+                    <p><strong>Second Name:</strong> ${data["Second Name"]}</p>
+                    <p><strong>Last Name:</strong> ${data["Last Name"]}</p>
                     <p><strong>Birthday:</strong> ${data.Birthday}</p>
+                    <p><strong>Email Address:</strong> ${
+                      data["Email Address"]
+                    }</p>
                     <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
                     <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
+                    <p><strong>Check-in Date:</strong> ${
+                      data["Check-in Date"]
+                    }</p>
+                    <p><strong>Check-out Date:</strong> ${
+                      data["Check-out Date"]
+                    }</p>
                   </div>
                   <div class="details-column">
-                    <h3>Flight Details</h3>
-                    <p>${
-                      data["Flight Details URL"]
-                        ? "Flight details are available for download."
-                        : "No Data Found."
+                    <h3>Emergency Details</h3>
+                    <p><strong>Emergency Contact Name:</strong> ${
+                      data["Emergency Contact Name"]
                     }</p>
-                    ${
-                      data["Flight Details URL"]
-                        ? `<a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>`
-                        : ""
-                    }
+                    <p><strong>Emergency Contact Number:</strong> ${
+                      data["Emergency Contact Number"]
+                    }</p>
+                    <p><strong>Relationship to Emergency Contact:</strong> ${
+                      data["Relationship to Emergency Contact"]
+                    }</p>
+                    <p><strong>Food Allergies and Dietary Restrictions:</strong> ${
+                      data["Food Allergies and Dietary Restrictions"]
+                    }</p>
+                    <p><strong>Medical Conditions:</strong> ${
+                      data["Medical Conditions We Should be Aware Of"]
+                    }</p>
+                    <p><strong>Accessibility Needs:</strong> ${
+                      data["Accessibility Needs"]
+                    }</p>
                   </div>
                 </div>
                 <div id="passport-section">
@@ -111,6 +130,14 @@
                     <br>
                     <img id="passport-image" width="200px" style="display: none; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
                   </div>
+                </div>
+                <div class="details-column">
+                  <h3>Flight Details</h3>
+                  ${
+                    data["Flight Details URL"]
+                      ? `<a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>`
+                      : "<p>No Flight Details Available.</p>"
+                  }
                 </div>
               `;
 
