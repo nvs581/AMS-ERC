@@ -81,6 +81,7 @@ def search_attendee():
                 "Last Name": stored_last_name,
                 "Full Name": full_name,
                 "Birthday": stored_birthday,
+                "Email Address": attendee.get("Email Address", ""),
                 "Event Name": attendee.get("Event Name", ""),
                 "Hotel Name": attendee.get("Hotel Name", ""),
                 "Check-in Date": attendee.get("Check-in date", ""),
