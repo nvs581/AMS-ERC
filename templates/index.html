@@ -12,57 +12,6 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
-    <style>
-      .details-container {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
-      }
-
-      .details-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(300px, 1fr));
-        gap: 15px;
-        padding: 20px;
-        background: #f9f9f9;
-        border-radius: 10px;
-        width: 80%;
-      }
-
-      .details-grid div {
-        padding: 10px;
-        background: white;
-        border-radius: 5px;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-      }
-
-      .passport-container {
-        text-align: center;
-        margin-top: 20px;
-      }
-
-      .passport-image {
-        width: 150px;
-        border-radius: 50%;
-        display: none;
-        cursor: pointer;
-      }
-
-      .download-btn {
-        display: inline-block;
-        padding: 10px 15px;
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        margin-top: 10px;
-      }
-
-      .download-btn:hover {
-        background-color: #0056b3;
-      }
-    </style>
   </head>
   <body>
     <div class="container">
@@ -132,63 +81,55 @@
               } else {
                 resultDiv.innerHTML = `
                 <div class="details-container">
-                  <div class="details-grid">
-                    <div><strong>First Name:</strong> ${
-                      data["First Name"]
-                    }</div>
-                    <div><strong>Second Name:</strong> ${
-                      data["Second Name"]
-                    }</div>
-                    <div><strong>Last Name:</strong> ${data["Last Name"]}</div>
-                    <div><strong>Birthday:</strong> ${data.Birthday}</div>
-                    <div><strong>Email Address:</strong> ${
+                  <div class="details-column">
+                    <h3>Personal Details</h3>
+                    <p><strong>First Name:</strong> ${data["First Name"]}</p>
+                    <p><strong>Second Name:</strong> ${data["Second Name"]}</p>
+                    <p><strong>Last Name:</strong> ${data["Last Name"]}</p>
+                    <p><strong>Birthday:</strong> ${data.Birthday}</p>
+                    <p><strong>Email Address:</strong> ${
                       data["Email Address"]
-                    }</div>
-                    <div><strong>Event Name:</strong> ${
-                      data["Event Name"]
-                    }</div>
-                    <div><strong>Hotel Name:</strong> ${
-                      data["Hotel Name"]
-                    }</div>
-                    <div><strong>Departure Date:</strong> ${
+                    }</p>
+                    <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
+                    <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
+                    <p><strong>Departure Date:</strong> ${
                       data["Departure Date"]
-                    }</div>
-                    <div><strong>Return Date:</strong> ${
-                      data["Return Date"]
-                    }</div>
-                    <div><strong>Emergency Contact Name:</strong> ${
+                    }</p>
+                    <p><strong>Return Date:</strong> ${data["Return Date"]}</p>
+                  </div>
+                  <div class="details-column">
+                    <h3>Emergency Details</h3>
+                    <p><strong>Emergency Contact Name:</strong> ${
                       data["Emergency Contact Name"]
-                    }</div>
-                    <div><strong>Emergency Contact Number:</strong> ${
+                    }</p>
+                    <p><strong>Emergency Contact Number:</strong> ${
                       data["Emergency Contact Number"]
-                    }</div>
-                    <div><strong>Relationship to Emergency Contact:</strong> ${
+                    }</p>
+                    <p><strong>Relationship to Emergency Contact:</strong> ${
                       data["Relationship to Emergency Contact"]
-                    }</div>
-                    <div><strong>Food Allergies:</strong> ${
+                    }</p>
+                    <p><strong>Food Allergies and Dietary Restrictions:</strong> ${
                       data["Food Allergies and Dietary Restrictions"]
-                    }</div>
-                    <div><strong>Medical Conditions:</strong> ${
+                    }</p>
+                    <p><strong>Medical Conditions We Should be Aware Of:</strong> ${
                       data["Medical Conditions We Should be Aware Of"]
-                    }</div>
-                    <div><strong>Accessibility Needs:</strong> ${
+                    }</p>
+                    <p><strong>Accessibility Needs:</strong> ${
                       data["Accessibility Needs"]
-                    }</div>
+                    }</p>
                   </div>
                 </div>
-
-                <div class="passport-container">
+                <div id="passport-section">
                   <h3>Passport Image</h3>
                   <button id="view-passport">View Passport</button>
-                  <div id="passport-container" style="display: none;">
+                  <div id="passport-container" style="display: none; text-align: center;">
                     <input type="password" id="passport-key" placeholder="Enter Passcode">
                     <button id="submit-passport-key">Submit</button>
                     <br>
-                    <img id="passport-image" class="passport-image" onclick="openModal(this.src)">
+                    <img id="passport-image" width="200px" style="display: none; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
                   </div>
                 </div>
-
-                <div class="details-container">
+                <div class="details-column">
                   <h3>Flight Details</h3>
                   ${
                     data["Flight Details URL"]
