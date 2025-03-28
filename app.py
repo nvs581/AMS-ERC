@@ -32,19 +32,33 @@ def home():
 
 @app.route("/search", methods=["GET"])
 def search_attendee():
-    first_name = request.args.get("first_name", "").strip()
-    last_name = request.args.get("last_name", "").strip()
+    first_name = request.args.get("first_name", "").strip().lower()
+    last_name = request.args.get("last_name", "").strip().lower()
     birthday = request.args.get("birthday", "").strip()
 
     if not first_name or not last_name or not birthday:
         return jsonify({"error": "Missing first name, last name, or birthday"}), 400
 
+    # Get all rows with headers
     attendees = sheet.get_all_records()
+    
+    # Get column names dynamically
+    headers = sheet.row_values(1)
+    
+    # Ensure column names exist
+    col_first_name = find_column(headers, "First Name")
+    col_second_name = find_column(headers, "Second Name", optional=True)  # Optional
+    col_last_name = find_column(headers, "Last Name")
+    col_birthday = find_column(headers, "Birthday")
+    
+    if not col_first_name or not col_last_name or not col_birthday:
+        return jsonify({"error": "Required columns not found in sheet"}), 500
 
     for attendee in attendees:
-        stored_first_name = attendee.get("First Name", "").strip()
-        stored_last_name = attendee.get("Last Name", "").strip()
-        stored_birthday = attendee.get("Birthday", "").strip()
+        stored_first_name = attendee.get(col_first_name, "").strip().lower()
+        stored_second_name = attendee.get(col_second_name, "").strip().lower() if col_second_name else ""
+        stored_last_name = attendee.get(col_last_name, "").strip().lower()
+        stored_birthday = attendee.get(col_birthday, "").strip()
 
         try:
             stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
@@ -52,11 +66,11 @@ def search_attendee():
             pass  
 
         if (
-            stored_first_name.lower() == first_name.lower() and
-            stored_last_name.lower() == last_name.lower() and
-            stored_birthday == birthday
+            stored_first_name == first_name
+            and stored_last_name == last_name
+            and stored_birthday == birthday
         ):
-            full_name = f"{stored_first_name} {stored_last_name}"
+            full_name = f"{stored_first_name} {stored_second_name} {stored_last_name}".strip()
             formatted_birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d").strftime("%m%d%Y")
             passport_filename = f"{first_name}{last_name}_{formatted_birthday}.jpg"
             passport_file_id = search_passport(passport_filename)
@@ -67,6 +81,7 @@ def search_attendee():
 
             return jsonify({
                 "First Name": stored_first_name,
+                "Second Name": stored_second_name,
                 "Last Name": stored_last_name,
                 "Full Name": full_name,
                 "Birthday": stored_birthday,
@@ -77,6 +92,16 @@ def search_attendee():
             })
 
     return jsonify({"error": "Attendee not found"}), 404
+
+def find_column(headers, column_name, optional=False):
+    """
+    Find the exact column name dynamically.
+    If optional=True, return None if not found.
+    """
+    for header in headers:
+        if header.lower() == column_name.lower():
+            return header
+    return None if optional else column_name
 
 @app.route("/validate_passcode", methods=["POST"])
 def validate_passcode():
