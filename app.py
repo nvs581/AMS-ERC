@@ -39,18 +39,14 @@ def search_attendee():
     if not first_name or not last_name or not birthday:
         return jsonify({"error": "Missing first name, last name, or birthday"}), 400
 
-    # Get all rows with headers
     attendees = sheet.get_all_records()
-    
-    # Get column names dynamically
     headers = sheet.row_values(1)
-    
-    # Ensure column names exist
+
     col_first_name = find_column(headers, "First Name")
     col_second_name = find_column(headers, "Second Name", optional=True)  # Optional
     col_last_name = find_column(headers, "Last Name")
     col_birthday = find_column(headers, "Birthday")
-    
+
     if not col_first_name or not col_last_name or not col_birthday:
         return jsonify({"error": "Required columns not found in sheet"}), 500
 
@@ -87,6 +83,18 @@ def search_attendee():
                 "Birthday": stored_birthday,
                 "Event Name": attendee.get("Event Name", ""),
                 "Hotel Name": attendee.get("Hotel Name", ""),
+                "Check-in Date": attendee.get("Check-in date", ""),
+                "Check-out Date": attendee.get("Check-out date", ""),
+                "Emergency Contact Name": attendee.get("Emergency Contact Name", ""),
+                "Emergency Contact Number": attendee.get("Emergency Contact Number", ""),
+                "Relationship to Emergency Contact": attendee.get("Relationship to Emergency Contact", ""),
+                "Food Allergies & Dietary Restrictions": attendee.get("Food Allergies & Dietary Restrictions", ""),
+                "Medical Conditions": attendee.get("Medical Conditions we should be aware of", ""),
+                "Accessibility Needs": attendee.get("Accessibility needs", ""),
+                "Consent Privacy Policy": attendee.get("I agree to the event’s privacy policy and consent to the collection of my information for event purposes.", ""),
+                "Consent Data Usage": attendee.get("By checking this box, you confirm that you consent to the use of your data for event planning.", ""),
+                "Consent Event Photography": attendee.get("I grant permission for event photography and video recordings that may include my image.", ""),
+                "Consent Promotional Photos": attendee.get("Choose ‘Yes’ if you allow photos and videos of you to be taken during the event for promotional purposes.", ""),
                 "Passport URL": passport_url,
                 "Flight Details URL": flight_details_url,
             })
