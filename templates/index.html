@@ -90,11 +90,11 @@
                   </div>
                   <div class="details-column">
                     <h3>Flight Details</h3>
-                    <p>$
-                      {data["Flight Details URL"]
+                    <p>${
+                      data["Flight Details URL"]
                         ? "Flight details are available for download."
-                        : "No Data Found."}
-                    </p>
+                        : "No Data Found."
+                    }</p>
                     ${
                       data["Flight Details URL"]
                         ? `<a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>`
