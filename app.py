@@ -15,13 +15,13 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive.readonly" 
 ]
 
-CREDENTIALS_FILE01 = "/etc/secrets/CREDENTIALS_FILE01.json"
+CREDENTIALS_FILE = "/etc/secrets/credentials.json"
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME")
 PASSPORT_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_PASSPORT_FOLDER_ID")
 FLIGHT_DETAILS_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FLIGHT_DETAILS_FOLDER_ID")
 ACCESS_PASSCODE = os.getenv("ACCESS_PASSCODE")
 
-creds = Credentials.from_service_account_file(CREDENTIALS_FILE01, scopes=SCOPES)
+creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
 gc = gspread.authorize(creds)
 sheet = gc.open(SPREADSHEET_NAME).sheet1  
 drive_service = build("drive", "v3", credentials=creds)
