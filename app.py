@@ -30,6 +30,9 @@ drive_service = build("drive", "v3", credentials=creds)
 def home():
     return render_template("index.html")
 
+from flask import Flask, request, jsonify
+import datetime
+
 @app.route("/search", methods=["GET"])
 def search_attendee():
     first_name = request.args.get("first_name", "").strip().lower()
@@ -42,10 +45,15 @@ def search_attendee():
     attendees = sheet.get_all_records()
     headers = sheet.row_values(1)
 
+    # Find necessary columns dynamically
     col_first_name = find_column(headers, "First Name")
     col_second_name = find_column(headers, "Second Name", optional=True)  # Optional
     col_last_name = find_column(headers, "Last Name")
     col_birthday = find_column(headers, "Birthday")
+    col_check_in = find_column(headers, "Check-in date")
+    col_check_out = find_column(headers, "Check-out date")
+    col_medical_conditions = find_column(headers, "Medical Conditions we should be aware of")
+    col_accessibility_needs = find_column(headers, "Accessibility needs")
 
     if not col_first_name or not col_last_name or not col_birthday:
         return jsonify({"error": "Required columns not found in sheet"}), 500
@@ -56,6 +64,7 @@ def search_attendee():
         stored_last_name = attendee.get(col_last_name, "").strip().lower()
         stored_birthday = attendee.get(col_birthday, "").strip()
 
+        # Convert Birthday format
         try:
             stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
         except ValueError:
@@ -67,10 +76,31 @@ def search_attendee():
             and stored_birthday == birthday
         ):
             full_name = f"{stored_first_name} {stored_second_name} {stored_last_name}".strip()
+
+            # Convert Check-in & Check-out Dates (fix missing values)
+            stored_check_in = attendee.get(col_check_in, "").strip()
+            stored_check_out = attendee.get(col_check_out, "").strip()
+
+            try:
+                stored_check_in = datetime.datetime.strptime(stored_check_in, "%m/%d/%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                stored_check_in = ""  # Keep empty if invalid
+
+            try:
+                stored_check_out = datetime.datetime.strptime(stored_check_out, "%m/%d/%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                stored_check_out = ""  # Keep empty if invalid
+
+            # Medical Conditions & Accessibility Needs
+            stored_medical_conditions = attendee.get(col_medical_conditions, "").strip()
+            stored_accessibility_needs = attendee.get(col_accessibility_needs, "").strip()
+
+            # Generate Passport & Flight Details URLs
             formatted_birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d").strftime("%m%d%Y")
             passport_filename = f"{first_name}{last_name}_{formatted_birthday}.jpg"
             passport_file_id = search_passport(passport_filename)
             passport_url = f"/passport/{passport_file_id}" if passport_file_id else None
+
             flight_details_filename = f"{first_name}{last_name}_{formatted_birthday}_flight.pdf"
             flight_details_file_id = search_flight_details(flight_details_filename)
             flight_details_url = f"/flight_details/{flight_details_file_id}" if flight_details_file_id else None
@@ -84,14 +114,14 @@ def search_attendee():
                 "Email Address": attendee.get("Email Address", ""),
                 "Event Name": attendee.get("Event Name", ""),
                 "Hotel Name": attendee.get("Hotel Name", ""),
-                "Check-in Date": attendee.get("Check-in date", ""),
-                "Check-out Date": attendee.get("Check-out date", ""),
+                "Check-in Date": stored_check_in,  # ✅ Fixed format
+                "Check-out Date": stored_check_out,  # ✅ Fixed format
                 "Emergency Contact Name": attendee.get("Emergency Contact Name", ""),
                 "Emergency Contact Number": attendee.get("Emergency Contact Number", ""),
                 "Relationship to Emergency Contact": attendee.get("Relationship to Emergency Contact", ""),
                 "Food Allergies and Dietary Restrictions": attendee.get("Food Allergies and Dietary Restrictions", ""),
-                "Medical Conditions We Should be Aware Of": attendee.get("Medical Conditions we should be aware of", ""),
-                "Accessibility Needs": attendee.get("Accessibility needs", ""),
+                "Medical Conditions": stored_medical_conditions,  # ✅ Ensure it is fetched
+                "Accessibility Needs": stored_accessibility_needs,  # ✅ Ensure it is fetched
                 "Consent Privacy Policy": attendee.get("I agree to the event’s privacy policy and consent to the collection of my information for event purposes.", ""),
                 "Consent Data Usage": attendee.get("By checking this box, you confirm that you consent to the use of your data for event planning.", ""),
                 "Consent Event Photography": attendee.get("I grant permission for event photography and video recordings that may include my image.", ""),
@@ -101,6 +131,7 @@ def search_attendee():
             })
 
     return jsonify({"error": "Attendee not found"}), 404
+
 
 def find_column(headers, column_name, optional=False):
     """
