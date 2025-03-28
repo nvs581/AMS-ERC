@@ -51,7 +51,7 @@ def search_attendee():
     col_last_name = find_column(headers, "Last Name")
     col_birthday = find_column(headers, "Birthday")
     col_departure = find_column(headers, "Departure date")
-    col_check_out = find_column(headers, "Check-out date")
+    col_Return = find_column(headers, "Return date")
     col_medical_conditions = find_column(headers, "Medical Conditions we should be aware of")
     col_accessibility_needs = find_column(headers, "Accessibility needs")
 
@@ -77,9 +77,9 @@ def search_attendee():
         ):
             full_name = f"{stored_first_name} {stored_second_name} {stored_last_name}".strip()
 
-            # Convert Departure & Check-out Dates (fix missing values)
+            # Convert Departure & Return Dates (fix missing values)
             stored_departure = attendee.get(col_departure, "").strip()
-            stored_check_out = attendee.get(col_check_out, "").strip()
+            stored_Return = attendee.get(col_Return, "").strip()
 
             try:
                 stored_departure = datetime.datetime.strptime(stored_departure, "%m/%d/%Y").strftime("%Y-%m-%d")
@@ -87,9 +87,9 @@ def search_attendee():
                 stored_departure = ""  # Keep empty if invalid
 
             try:
-                stored_check_out = datetime.datetime.strptime(stored_check_out, "%m/%d/%Y").strftime("%Y-%m-%d")
+                stored_Return = datetime.datetime.strptime(stored_Return, "%m/%d/%Y").strftime("%Y-%m-%d")
             except ValueError:
-                stored_check_out = ""  # Keep empty if invalid
+                stored_Return = ""  # Keep empty if invalid
 
             # Medical Conditions & Accessibility Needs
             stored_medical_conditions = attendee.get(col_medical_conditions, "").strip()
@@ -115,7 +115,7 @@ def search_attendee():
                 "Event Name": attendee.get("Event Name", ""),
                 "Hotel Name": attendee.get("Hotel Name", ""),
                 "Departure Date": stored_departure,  
-                "Check-out Date": stored_check_out,  
+                "Return Date": stored_Return,  
                 "Emergency Contact Name": attendee.get("Emergency Contact Name", ""),
                 "Emergency Contact Number": attendee.get("Emergency Contact Number", ""),
                 "Relationship to Emergency Contact": attendee.get("Relationship to Emergency Contact", ""),
