@@ -50,8 +50,8 @@ def search_attendee():
     col_second_name = find_column(headers, "Second Name", optional=True)  # Optional
     col_last_name = find_column(headers, "Last Name")
     col_birthday = find_column(headers, "Birthday")
-    col_check_in = find_column(headers, "Check-in date")
-    col_check_out = find_column(headers, "Check-out date")
+    col_departure = find_column(headers, "Departure Date")
+    col_return = find_column(headers, "Return date")
     col_medical_conditions = find_column(headers, "Medical Conditions we should be aware of")
     col_accessibility_needs = find_column(headers, "Accessibility needs")
 
@@ -77,19 +77,19 @@ def search_attendee():
         ):
             full_name = f"{stored_first_name} {stored_second_name} {stored_last_name}".strip()
 
-            # Convert Check-in & Check-out Dates (fix missing values)
-            stored_check_in = attendee.get(col_check_in, "").strip()
-            stored_check_out = attendee.get(col_check_out, "").strip()
+            # Convert Departure & Return Dates (fix missing values)
+            stored_departure = attendee.get(col_departure, "").strip()
+            stored_return = attendee.get(col_return, "").strip()
 
             try:
-                stored_check_in = datetime.datetime.strptime(stored_check_in, "%m/%d/%Y").strftime("%Y-%m-%d")
+                stored_departure = datetime.datetime.strptime(stored_departure, "%m/%d/%Y").strftime("%Y-%m-%d")
             except ValueError:
-                stored_check_in = ""  # Keep empty if invalid
+                stored_departure = ""  # Keep empty if invalid
 
             try:
-                stored_check_out = datetime.datetime.strptime(stored_check_out, "%m/%d/%Y").strftime("%Y-%m-%d")
+                stored_return = datetime.datetime.strptime(stored_return, "%m/%d/%Y").strftime("%Y-%m-%d")
             except ValueError:
-                stored_check_out = ""  # Keep empty if invalid
+                stored_return = ""  # Keep empty if invalid
 
             # Medical Conditions & Accessibility Needs
             stored_medical_conditions = attendee.get(col_medical_conditions, "").strip()
@@ -114,8 +114,8 @@ def search_attendee():
                 "Email Address": attendee.get("Email Address", ""),
                 "Event Name": attendee.get("Event Name", ""),
                 "Hotel Name": attendee.get("Hotel Name", ""),
-                "Check-in Date": stored_check_in,  
-                "Check-out Date": stored_check_out,  
+                "Departure Date": stored_departure,  
+                "Return Date": stored_return,  
                 "Emergency Contact Name": attendee.get("Emergency Contact Name", ""),
                 "Emergency Contact Number": attendee.get("Emergency Contact Number", ""),
                 "Relationship to Emergency Contact": attendee.get("Relationship to Emergency Contact", ""),
