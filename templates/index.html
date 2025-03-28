@@ -17,38 +17,59 @@
     <div class="container">
       <h1>Attendee Search</h1>
       <form id="searchForm">
-        <input
-          type="text"
-          id="first_name"
-          name="first_name"
-          placeholder="Enter First Name"
-          required
-        />
-        <input
-          type="text"
-          id="last_name"
-          name="last_name"
-          placeholder="Enter Last Name"
-          required
-        />
-        <input type="date" id="birthday" name="birthday" required />
+        <div class="input-group">
+          <input
+            type="text"
+            id="first_name"
+            name="first_name"
+            placeholder="Enter First Name"
+            required
+          />
+          <input
+            type="text"
+            id="last_name"
+            name="last_name"
+            placeholder="Enter Last Name"
+            required
+          />
+          <input type="date" id="birthday" name="birthday" required />
+        </div>
         <button type="submit">Search</button>
       </form>
       <div id="result"></div>
     </div>
 
-    <div id="imageModal" class="modal" onclick="closeModal()">
-      <img id="modalImage" src="" />
+    <!-- Passport Modal -->
+    <div id="imageModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img id="modalImage" src="" />
+      </div>
+    </div>
+
+    <!-- Flight Details Modal -->
+    <div id="flightModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeFlightModal()">&times;</span>
+        <iframe id="flightFrame" src="" width="100%" height="500px"></iframe>
+      </div>
     </div>
 
     <script>
       function openModal(imageSrc) {
         document.getElementById("modalImage").src = imageSrc;
-        document.getElementById("imageModal").classList.add("show");
+        document.getElementById("imageModal").style.display = "flex";
+      }
+      function closeModal() {
+        document.getElementById("imageModal").style.display = "none";
       }
 
-      function closeModal() {
-        document.getElementById("imageModal").classList.remove("show");
+      function openFlightModal(pdfSrc) {
+        document.getElementById("flightFrame").src = pdfSrc;
+        document.getElementById("flightModal").style.display = "flex";
+      }
+      function closeFlightModal() {
+        document.getElementById("flightModal").style.display = "none";
       }
 
       document
@@ -74,39 +95,42 @@
                 resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
               } else {
                 resultDiv.innerHTML = `
-                <div class="details-container">
-                  <div class="details-column">
-                    <h3>Personal Details</h3>
-                    <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
-                    <p><strong>Birthday:</strong> ${data.Birthday}</p>
-                    <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
-                    <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
-                  </div>
-                  <div class="details-column">
-                    <h3>Flight Details</h3>
-                    <p>${
-                      data["Flight Details URL"]
-                        ? "Flight details are available for download."
-                        : "No Data Found."
-                    }</p>
-                    ${
-                      data["Flight Details URL"]
-                        ? `<a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>`
-                        : ""
-                    }
-                  </div>
+              <div class="details-container">
+                <div class="details-column">
+                  <h3>Personal Details</h3>
+                  <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
+                  <p><strong>Birthday:</strong> ${data.Birthday}</p>
+                  <p><strong>Event Name:</strong> ${data["Event Name"]}</p>
+                  <p><strong>Hotel Name:</strong> ${data["Hotel Name"]}</p>
                 </div>
-                <div id="passport-section">
-                  <h3>Passport Image</h3>
-                  <button id="view-passport">View Passport</button>
-                  <div id="passport-container" style="display: none;">
-                    <input type="password" id="passport-key" placeholder="Enter Passcode">
-                    <button id="submit-passport-key">Submit</button>
-                    <br>
-                    <img id="passport-image" width="200px" style="display: none; cursor: pointer;" onclick="openModal(this.src)">
-                  </div>
+                <div class="details-column">
+                  <h3>Flight Details</h3>
+                  <p>${
+                    data["Flight Details URL"]
+                      ? "Flight details available."
+                      : "No Data Found."
+                  }</p>
+                  ${
+                    data["Flight Details URL"]
+                      ? `
+                    <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
+                    <button onclick="openFlightModal('${data["Flight Details URL"]}')" class="view-btn">View Flight Details</button>
+                  `
+                      : ""
+                  }
                 </div>
-              `;
+              </div>
+              <div id="passport-section">
+                <h3>Passport Image</h3>
+                <button id="view-passport">View Passport</button>
+                <div id="passport-container" style="display: none;">
+                  <input type="password" id="passport-key" placeholder="Enter Passcode">
+                  <button id="submit-passport-key">Submit</button>
+                  <br>
+                  <img id="passport-image" width="200px" style="display: none; cursor: pointer; border-radius: 50%;" onclick="openModal(this.src)">
+                </div>
+              </div>
+            `;
 
                 document
                   .getElementById("view-passport")
