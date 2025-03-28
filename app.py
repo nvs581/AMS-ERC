@@ -114,14 +114,14 @@ def search_attendee():
                 "Email Address": attendee.get("Email Address", ""),
                 "Event Name": attendee.get("Event Name", ""),
                 "Hotel Name": attendee.get("Hotel Name", ""),
-                "Check-in Date": stored_check_in,  # ✅ Fixed format
-                "Check-out Date": stored_check_out,  # ✅ Fixed format
+                "Check-in Date": stored_check_in,  
+                "Check-out Date": stored_check_out,  
                 "Emergency Contact Name": attendee.get("Emergency Contact Name", ""),
                 "Emergency Contact Number": attendee.get("Emergency Contact Number", ""),
                 "Relationship to Emergency Contact": attendee.get("Relationship to Emergency Contact", ""),
                 "Food Allergies and Dietary Restrictions": attendee.get("Food Allergies and Dietary Restrictions", ""),
-                "Medical Conditions": stored_medical_conditions,  # ✅ Ensure it is fetched
-                "Accessibility Needs": stored_accessibility_needs,  # ✅ Ensure it is fetched
+                "Medical Conditions We Should be Aware Of": stored_medical_conditions,  
+                "Accessibility Needs": stored_accessibility_needs,  
                 "Consent Privacy Policy": attendee.get("I agree to the event’s privacy policy and consent to the collection of my information for event purposes.", ""),
                 "Consent Data Usage": attendee.get("By checking this box, you confirm that you consent to the use of your data for event planning.", ""),
                 "Consent Event Photography": attendee.get("I grant permission for event photography and video recordings that may include my image.", ""),
