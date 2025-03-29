@@ -39,10 +39,14 @@ def search_attendee():
 
     headers = sheet.row_values(1)
     unique_headers = []
-    seen = set()
+    seen = {}
     for header in headers:
-        new_header = header if header not in seen else f"{header}_{len(seen)}"
-        seen.add(header)
+        if header in seen:
+            seen[header] += 1
+            new_header = f"{header}_{seen[header]}"
+        else:
+            seen[header] = 0
+            new_header = header
         unique_headers.append(new_header)
 
     attendees = sheet.get_all_records(expected_headers=unique_headers)
@@ -51,14 +55,14 @@ def search_attendee():
     col_second_name = find_column(unique_headers, "Second Name", optional=True)
     col_last_name = find_column(unique_headers, "Last Name")
     col_birthday = find_column(unique_headers, "Birthday")
-    col_departure = find_column(unique_headers, "Departure date")
-    col_return = find_column(unique_headers, "Return date")
+    col_departure = find_column(unique_headers, "Departure Date")
+    col_return = find_column(unique_headers, "Return Date")
     col_medical_conditions = find_column(unique_headers, "Medical Conditions we should be aware of")
     col_accessibility_needs = find_column(unique_headers, "Accessibility needs")
     col_submission_id = find_column(unique_headers, "Submission ID")
     col_respondent_id = find_column(unique_headers, "Respondent ID")
-    col_passport_url = find_column(unique_headers, "Passport URL")
-    col_flight_details_url = find_column(unique_headers, "Flight Details URL")
+    col_passport_url = find_column(unique_headers, "Passport")
+    col_flight_details_url = find_column(unique_headers, "Flight Details")
 
     if not col_first_name or not col_last_name or not col_birthday:
         return jsonify({"error": "Required columns not found in sheet"}), 500
