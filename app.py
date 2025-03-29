@@ -72,7 +72,7 @@ def search_attendee():
         return jsonify({"error": "Required columns not found in sheet"}), 500
 
     for attendee in attendees:
-        stored_submission_id = attendee.get(col_submission_id, "").strip()
+        stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
         stored_first_name = attendee.get(col_first_name, "").strip().lower()
         stored_last_name = attendee.get(col_last_name, "").strip().lower()
         stored_birthday = attendee.get(col_birthday, "").strip()
