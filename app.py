@@ -1,37 +1,26 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template
 import gspread
 from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 import datetime
-import requests
-from io import BytesIO
 import os
 
 app = Flask(__name__)
 
 SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets.readonly",  
-    "https://www.googleapis.com/auth/drive.metadata.readonly",  
-    "https://www.googleapis.com/auth/drive.readonly" 
+    "https://www.googleapis.com/auth/spreadsheets.readonly"
 ]
 
 CREDENTIALS_FILE = "/etc/secrets/credentials.json"
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME")
-PASSPORT_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_PASSPORT_FOLDER_ID")
-FLIGHT_DETAILS_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FLIGHT_DETAILS_FOLDER_ID")
 ACCESS_PASSCODE = os.getenv("ACCESS_PASSCODE")
 
 creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
 gc = gspread.authorize(creds)
 sheet = gc.open(SPREADSHEET_NAME).sheet1  
-drive_service = build("drive", "v3", credentials=creds)
 
 @app.route("/")
 def home():
     return render_template("index.html")
-
-from flask import Flask, request, jsonify
-import datetime
 
 @app.route("/search", methods=["GET"])
 def search_attendee():
@@ -45,15 +34,18 @@ def search_attendee():
     attendees = sheet.get_all_records()
     headers = sheet.row_values(1)
 
-    # Find necessary columns dynamically
     col_first_name = find_column(headers, "First Name")
-    col_second_name = find_column(headers, "Second Name", optional=True)  # Optional
+    col_second_name = find_column(headers, "Second Name", optional=True)
     col_last_name = find_column(headers, "Last Name")
     col_birthday = find_column(headers, "Birthday")
     col_departure = find_column(headers, "Departure date")
     col_Return = find_column(headers, "Return date")
     col_medical_conditions = find_column(headers, "Medical Conditions we should be aware of")
     col_accessibility_needs = find_column(headers, "Accessibility needs")
+    col_submission_id = find_column(headers, "Submission ID")
+    col_respondent_id = find_column(headers, "Respondent ID")
+    col_passport_url = find_column(headers, "Passport URL")
+    col_flight_details_url = find_column(headers, "Flight Details URL")
 
     if not col_first_name or not col_last_name or not col_birthday:
         return jsonify({"error": "Required columns not found in sheet"}), 500
@@ -64,7 +56,6 @@ def search_attendee():
         stored_last_name = attendee.get(col_last_name, "").strip().lower()
         stored_birthday = attendee.get(col_birthday, "").strip()
 
-        # Convert Birthday format
         try:
             stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
         except ValueError:
@@ -77,33 +68,25 @@ def search_attendee():
         ):
             full_name = f"{stored_first_name} {stored_second_name} {stored_last_name}".strip()
 
-            # Convert Departure & Return Dates (fix missing values)
             stored_departure = attendee.get(col_departure, "").strip()
             stored_Return = attendee.get(col_Return, "").strip()
 
             try:
                 stored_departure = datetime.datetime.strptime(stored_departure, "%m/%d/%Y").strftime("%Y-%m-%d")
             except ValueError:
-                stored_departure = ""  # Keep empty if invalid
+                stored_departure = ""
 
             try:
                 stored_Return = datetime.datetime.strptime(stored_Return, "%m/%d/%Y").strftime("%Y-%m-%d")
             except ValueError:
-                stored_Return = ""  # Keep empty if invalid
+                stored_Return = ""
 
-            # Medical Conditions & Accessibility Needs
             stored_medical_conditions = attendee.get(col_medical_conditions, "").strip()
             stored_accessibility_needs = attendee.get(col_accessibility_needs, "").strip()
-
-            # Generate Passport & Flight Details URLs
-            formatted_birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d").strftime("%m%d%Y")
-            passport_filename = f"{first_name}{last_name}_{formatted_birthday}.jpg"
-            passport_file_id = search_passport(passport_filename)
-            passport_url = f"/passport/{passport_file_id}" if passport_file_id else None
-
-            flight_details_filename = f"{first_name}{last_name}_{formatted_birthday}_flight.pdf"
-            flight_details_file_id = search_flight_details(flight_details_filename)
-            flight_details_url = f"/flight_details/{flight_details_file_id}" if flight_details_file_id else None
+            submission_id = attendee.get(col_submission_id, "")
+            respondent_id = attendee.get(col_respondent_id, "")
+            passport_url = attendee.get(col_passport_url, "")
+            flight_details_url = attendee.get(col_flight_details_url, "")
 
             return jsonify({
                 "First Name": stored_first_name,
@@ -128,16 +111,13 @@ def search_attendee():
                 "Consent Promotional Photos": attendee.get("Choose ‘Yes’ if you allow photos and videos of you to be taken during the event for promotional purposes.", ""),
                 "Passport URL": passport_url,
                 "Flight Details URL": flight_details_url,
+                "Submission ID": submission_id,
+                "Respondent ID": respondent_id
             })
 
     return jsonify({"error": "Attendee not found"}), 404
 
-
 def find_column(headers, column_name, optional=False):
-    """
-    Find the exact column name dynamically.
-    If optional=True, return None if not found.
-    """
     for header in headers:
         if header.lower() == column_name.lower():
             return header
@@ -151,54 +131,6 @@ def validate_passcode():
     if entered_passcode == ACCESS_PASSCODE:
         return jsonify({"status": "success"})
     return jsonify({"status": "error", "message": "Incorrect passcode"}), 403
-
-def search_passport(filename):
-    query = f"name contains '{filename}' and '{PASSPORT_DRIVE_FOLDER_ID}' in parents"
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    files = results.get("files", [])
-
-    if files:
-        return files[0]["id"]
-    return None
-
-def search_flight_details(filename):
-    query = f"name contains '{filename}' and '{FLIGHT_DETAILS_DRIVE_FOLDER_ID}' in parents"
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    files = results.get("files", [])
-
-    if files:
-        return files[0]["id"]
-    return None
-
-@app.route("/passport/<file_id>")
-def get_passport_image(file_id):
-    file_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
-    headers = {"Authorization": f"Bearer {creds.token}"}
-
-    response = requests.get(file_url, headers=headers)
-    if response.status_code == 200:
-        return send_file(BytesIO(response.content), mimetype="image/jpeg")
-
-    return jsonify({"error": "Image not found"}), 404
-
-@app.route("/flight_details/<file_id>")
-def download_flight_details(file_id):
-    try:
-        file_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
-        headers = {"Authorization": f"Bearer {creds.token}"}
-
-        response = requests.get(file_url, headers=headers)
-        if response.status_code == 200:
-            return send_file(
-                BytesIO(response.content), 
-                mimetype="application/pdf", 
-                as_attachment=True, 
-                download_name="flight_details.pdf"
-            )
-
-        return jsonify({"error": "Flight details not found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
