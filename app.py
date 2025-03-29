@@ -8,9 +8,11 @@ import os
 
 app = Flask(__name__)
 
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets", 
-          "https://www.googleapis.com/auth/drive"]
-
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets.readonly",  
+    "https://www.googleapis.com/auth/drive.metadata.readonly",  
+    "https://www.googleapis.com/auth/drive.readonly" 
+]
 CREDENTIALS_FILE = "/etc/secrets/credentials.json"
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME")
 ACCESS_PASSCODE = os.getenv("ACCESS_PASSCODE")
