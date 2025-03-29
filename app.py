@@ -116,18 +116,18 @@ def search_attendee():
                 "Hotel Name": attendee.get(col_hotel_name, ""),
                 "Departure Date": stored_departure,  
                 "Return Date": stored_return,  
-                "Emergency Contact Relationship": attendee.get("Relationship to Emergency Contact|text-2", ""),
+                "Emergency Contact Relationship": attendee.get(col_emergency_contact_relationship, ""),
                 "Emergency Contact First Name": attendee.get(col_emergency_contact_first_name, ""),
                 "Emergency Contact Last Name": attendee.get(col_emergency_contact_last_name, ""),
-                "Emergency Contact Phone": attendee.get("Phone Number|phone-1", ""),
+                "Emergency Contact Phone": attendee.get(col_emergency_contact_phone, ""),
                 "Food Allergies and Dietary Restrictions": attendee.get(col_food_allergies, ""),
                 "Other Food & Dietary Restriction": attendee.get(col_other_dietary, ""),
                 "Medical Conditions": attendee.get(col_medical_conditions, ""),  
                 "Accessibility Needs": attendee.get(col_accessibility_needs, ""),  
                 "Consent Privacy Policy": attendee.get(col_privacy_policy, ""),
                 "Consent Photography": attendee.get(col_photography_consent, ""),
-                "Passport URL": passport_url,
-                "Flight Details URL": flight_details_url,
+                "Passport URL": attendee.get("Passport|upload-2", "").strip(),
+                "Flight Details URL": attendee.get("Flight Details|upload-1", "").strip(),
             })
 
     return jsonify({"error": "Attendee not found"}), 404
