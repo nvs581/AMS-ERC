@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-  max-width: 800px;
+  max-width: 600px;
   background: #fff;
   padding: 20px;
   border-radius: 10px;
@@ -52,19 +52,17 @@ button:hover {
 /* Result Styling */
 .details-container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 20px;
 }
 
 .details-column {
-  flex: 1;
   background-color: #f8f9fa;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   text-align: left;
-  min-width: 300px;
 }
 
 .details-column h3 {
@@ -107,10 +105,7 @@ button:hover {
 }
 
 #passport-image {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 50%;
+  width: 200px;
   display: none;
   cursor: pointer;
   transition: transform 0.3s;
