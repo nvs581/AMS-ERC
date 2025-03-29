@@ -7,7 +7,9 @@ import os
 app = Flask(__name__)
 
 SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets.readonly"
+    "https://www.googleapis.com/auth/spreadsheets.readonly",  
+    "https://www.googleapis.com/auth/drive.metadata.readonly",  
+    "https://www.googleapis.com/auth/drive.readonly" 
 ]
 
 CREDENTIALS_FILE = "/etc/secrets/credentials.json"
