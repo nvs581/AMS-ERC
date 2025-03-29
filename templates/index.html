@@ -128,17 +128,20 @@
                     <input type="password" id="passport-key" placeholder="Enter Passcode">
                     <button id="submit-passport-key">Submit</button>
                     <br>
-                    <img id="passport-image" width="200px" style="display: none; border-radius: 50%; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
+                    <img id="passport-image" width="200px" style="display: none; border-radius: 10%; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
                   </div>
                 </div>
                 <div class="details-column">
                   <h3>Flight Details</h3>
                   ${
                     data["Flight Details URL"]
-                      ? `<a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
-                         <button onclick="openModal('${data["Flight Details URL"]}')">View Flight Details</button>`
+                      ? `<div class="flight-details-container">
+                            <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
+                            <button class="view-btn" onclick="openModal('${data["Flight Details URL"]}')">View Flight Details</button>
+                          </div>`
                       : "<p>No Flight Details Available.</p>"
                   }
+
                 </div>
               `;
 

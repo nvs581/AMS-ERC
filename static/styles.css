@@ -72,18 +72,29 @@ button:hover {
   padding-bottom: 5px;
 }
 
-/* Download Button */
-.download-btn {
-  display: inline-block;
-  background-color: #28a745;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 5px;
-  text-decoration: none;
-  margin-top: 10px;
+.flight-details-container {
+  text-align: center;
+  margin-top: 15px;
 }
 
-.download-btn:hover {
+.download-btn,
+.view-btn {
+  display: inline-block;
+  margin: 5px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.view-btn {
+  background-color: #28a745;
+}
+
+.view-btn:hover {
   background-color: #218838;
 }
 
