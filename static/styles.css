@@ -171,10 +171,22 @@ button:hover {
   background-color: #eef;
   border-radius: 8px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow: auto;
 }
 
 .additional-info h3 {
   color: #d9534f;
   border-bottom: 2px solid #d9534f;
   padding-bottom: 5px;
+}
+
+/* Ensure text in details columns doesn't overflow */
+.details-column p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow: auto;
 }
