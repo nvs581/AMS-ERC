@@ -55,8 +55,7 @@ def search_attendee():
     col_medical_conditions = find_column(headers, "Medical Condition/s|textarea-2")
     col_accessibility_needs = find_column(headers, "Accessibility Need/s|textarea-3")
     col_email = find_column(headers, "Email Address|email-1")
-    col_event_name = find_column(headers, "Event Name|select-1")
-    col_hotel_name = find_column(headers, "Hotel Name|text-1")
+    col_room_type = find_column(headers, "Room Type|select-1")
     col_emergency_contact_relationship = find_column(headers, "Relationship to Emergency Contact|text-2")
     col_emergency_contact_first_name = find_column(headers, "First Name|name-2-first-name")
     col_emergency_contact_last_name = find_column(headers, "Last Name|name-2-last-name")
@@ -112,8 +111,7 @@ def search_attendee():
                 "Full Name": full_name,
                 "Birthday": stored_birthday,
                 "Email Address": attendee.get(col_email, ""),
-                "Event Name": attendee.get(col_event_name, ""),
-                "Hotel Name": attendee.get(col_hotel_name, ""),
+                "Room Type": attendee.get(col_room_type, ""),
                 "Departure Date": stored_departure,  
                 "Return Date": stored_return,  
                 "Emergency Contact Relationship": attendee.get(col_emergency_contact_relationship, ""),
