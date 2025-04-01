@@ -133,8 +133,10 @@ button:hover {
 .modal {
   display: none;
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.8);
   padding: 20px;
@@ -143,9 +145,10 @@ button:hover {
   z-index: 1000;
 }
 
-.modal img {
-  max-width: 90%;
-  border-radius: 10px;
+.modal img,
+.modal iframe {
+  max-width: 100%;
+  border-radius: 0;
 }
 
 .modal .close {
