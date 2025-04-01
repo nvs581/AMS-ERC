@@ -100,6 +100,7 @@
                     <h3>Personal Details</h3>
                     <p><strong>First Name:</strong> ${data["First Name"]}</p>
                     <p><strong>Last Name:</strong> ${data["Last Name"]}</p>
+                    <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
                     <p><strong>Birthday:</strong> ${data.Birthday}</p>
                     <p><strong>Email Address:</strong> ${
                       data["Email Address"]
@@ -110,6 +111,7 @@
                     }</p>
                     <p><strong>Return Date:</strong> ${data["Return Date"]}</p>
                   </div>
+                  
                   <div class="details-column">
                     <h3>Emergency Contact Details</h3>
                     <p><strong>Emergency Contact First Name:</strong> ${
@@ -124,6 +126,10 @@
                     <p><strong>Relationship to Emergency Contact:</strong> ${
                       data["Emergency Contact Relationship"]
                     }</p>
+                  </div>
+
+                  <div class="details-column">
+                    <h3>Health & Dietary Information</h3>
                     <p><strong>Food Allergies and Dietary Restrictions:</strong> ${
                       data["Food Allergies and Dietary Restrictions"]
                     }</p>
@@ -134,17 +140,33 @@
                       data["Accessibility Needs"]
                     }</p>
                   </div>
-                </div>
-                <div id="passport-section">
-                  <h3>Passport Image</h3>
-                  <button id="view-passport">View Passport</button>
-                  <div id="passport-container" style="display: none; text-align: center;">
-                    <input type="password" id="passport-key" placeholder="Enter Passcode">
-                    <button id="submit-passport-key">Submit</button>
-                    <br>
-                    <img id="passport-image" width="200px" style="display: none; border-radius: 10%; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
+
+                  <div class="details-column">
+                    <h3>Consent & Privacy</h3>
+                    <p><strong>Consent to Privacy Policy:</strong> ${
+                      data["Consent Privacy Policy"]
+                    }</p>
+                    <p><strong>Photography & Video Consent:</strong> ${
+                      data["Consent Photography"]
+                    }</p>
                   </div>
                 </div>
+
+                <div id="passport-section">
+                  <h3>Passport Image</h3>
+                  ${
+                    data["Passport URL"]
+                      ? `<button id="view-passport">View Passport</button>
+                        <div id="passport-container" style="display: none; text-align: center;">
+                          <input type="password" id="passport-key" placeholder="Enter Passcode">
+                          <button id="submit-passport-key">Submit</button>
+                          <br>
+                          <img id="passport-image" src="${data["Passport URL"]}" width="200px" style="display: none; border-radius: 10%; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
+                        </div>`
+                      : "<p>No Passport Image Available.</p>"
+                  }
+                </div>
+
                 <div class="details-column">
                   <h3>Flight Details</h3>
                   ${
@@ -155,7 +177,6 @@
                           </div>`
                       : "<p>No Flight Details Available.</p>"
                   }
-
                 </div>
               `;
 
@@ -195,6 +216,11 @@
                       });
                   });
               }
+            })
+            .catch((error) => {
+              console.error("Error fetching attendee details:", error);
+              document.getElementById("result").innerHTML =
+                "<p style='color: red;'>An error occurred while fetching details. Please try again.</p>";
             });
         });
     </script>
