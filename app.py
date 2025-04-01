@@ -61,7 +61,7 @@ def search_attendee():
     col_emergency_contact_last_name = find_column(headers, "Last Name|name-2-last-name")
     col_emergency_contact_phone = find_column(headers, "Phone Number|phone-1")
     col_food_allergies = find_column(headers, "Food Allergies and Dietary Restrictions|checkbox-1")
-    col_other_dietary = find_column(headers, "Other Food & Dietary Restriction|textarea-1")
+    col_other_dietary = find_column(headers, "Other Food and Dietary Restriction|textarea-1")
     col_privacy_policy = find_column(headers, "I agree to the event’s privacy policy and consent to the collection of my information for event purposes.|radio-1")
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
