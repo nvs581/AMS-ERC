@@ -61,7 +61,7 @@ def search_attendee():
     col_emergency_contact_last_name = find_column(headers, "Last Name|name-2-last-name")
     col_emergency_contact_phone = find_column(headers, "Phone Number|phone-1")
     col_food_allergies = find_column(headers, "Food Allergies and Dietary Restrictions|checkbox-1")
-    col_other_dietary = find_column(headers, "Other Food & Dietary Restriction|textarea-1")
+    col_other_dietary = find_column(headers, "Other Food and Dietary Restriction|textarea-1")
     col_privacy_policy = find_column(headers, "I agree to the event’s privacy policy and consent to the collection of my information for event purposes.|radio-1")
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
@@ -98,6 +98,20 @@ def search_attendee():
             except ValueError:
                 stored_return = ""
 
+            # Handle Food Allergies and Dietary Restrictions
+            food_allergies = attendee.get(col_food_allergies, "").strip()
+            other_dietary_restriction = attendee.get(col_other_dietary, "").strip()
+
+            if "Others" in food_allergies:
+                # Convert to a list for proper handling (assuming comma-separated values)
+                allergies_list = [item.strip() for item in food_allergies.split(",")]
+
+                # Replace "Others" with the actual restriction
+                allergies_list = [other_dietary_restriction if item == "Others" else item for item in allergies_list]
+
+                # Convert back to a string for display
+                food_allergies = ", ".join(filter(None, allergies_list))  # Remove empty values
+
             # Ensure files belong to the correct Submission ID
             stored_passport_url = attendee.get(col_passport, "").strip()
             stored_flight_details_url = attendee.get(col_flight_details, "").strip()
@@ -118,14 +132,13 @@ def search_attendee():
                 "Emergency Contact First Name": attendee.get(col_emergency_contact_first_name, ""),
                 "Emergency Contact Last Name": attendee.get(col_emergency_contact_last_name, ""),
                 "Emergency Contact Phone": attendee.get(col_emergency_contact_phone, ""),
-                "Food Allergies and Dietary Restrictions": attendee.get(col_food_allergies, ""),
-                "Other Food & Dietary Restriction": attendee.get(col_other_dietary, ""),
+                "Food Allergies and Dietary Restrictions": food_allergies,  # Updated field
                 "Medical Conditions": attendee.get(col_medical_conditions, ""),  
                 "Accessibility Needs": attendee.get(col_accessibility_needs, ""),  
                 "Consent Privacy Policy": attendee.get(col_privacy_policy, ""),
                 "Consent Photography": attendee.get(col_photography_consent, ""),
-                "Passport URL": attendee.get("Passport|upload-2", "").strip(),
-                "Flight Details URL": attendee.get("Flight Details|upload-1", "").strip(),
+                "Passport URL": passport_url,
+                "Flight Details URL": flight_details_url,
             })
 
     return jsonify({"error": "Attendee not found"}), 404
