@@ -11,8 +11,9 @@
   </head>
   <body>
     <div class="container">
-      <h1>Attendee Search</h1>
+      <h1>RESET Participant Information</h1>
       <form id="searchForm">
+        <label for="name">Enter Name</label>
         <input
           type="text"
           id="name"
@@ -20,7 +21,10 @@
           placeholder="Enter Name"
           required
         />
+
+        <label for="birthday">Enter Birthday</label>
         <input type="date" id="birthday" name="birthday" required />
+
         <button type="submit">Search</button>
       </form>
       <div id="result"></div>
