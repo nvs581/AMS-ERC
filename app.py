@@ -6,6 +6,7 @@ import datetime
 import requests
 from io import BytesIO
 import os
+from fuzzywuzzy import fuzz
 
 app = Flask(__name__)
 
@@ -33,10 +34,10 @@ def home():
 @app.route("/search", methods=["GET"])
 def search_attendee():
     first_name = request.args.get("first_name", "").strip().lower()
-    middle_name = request.args.get("middle_name", "").strip().lower()
+    middle_name = request.args.get("middle_name", "").strip().lower().replace(".", "").replace(" ", "")
     last_name = request.args.get("last_name", "").strip().lower()
 
-    if not first_name or not middle_name or not last_name:
+    if not first_name or not last_name or not middle_name:
         return jsonify({"error": "Missing first name, middle name, or last name"}), 400
 
     attendees = sheet.get_all_records()
@@ -47,6 +48,7 @@ def search_attendee():
     col_first_name = find_column(headers, "First Name|name-1-first-name")
     col_middle_name = find_column(headers, "Middle Name|name-1-middle-name")
     col_last_name = find_column(headers, "Last Name|name-1-last-name")
+    col_birthday = find_column(headers, "Birthday|date-1")
     col_departure = find_column(headers, "Departure Date|date-2")
     col_return = find_column(headers, "Return Date|date-3")
     col_medical_conditions = find_column(headers, "Medical Condition/s|textarea-2")
@@ -64,21 +66,26 @@ def search_attendee():
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
 
-    if not col_first_name or not col_middle_name or not col_last_name or not col_submission_id:
+    if not col_first_name or not col_middle_name or not col_last_name or not col_birthday or not col_submission_id:
         return jsonify({"error": "Required columns not found in sheet"}), 500
-
-    title_prefixes = ["mr.", "ms.", "mrs.", "dr.", "prof.", "sir", "madam"]
 
     for attendee in attendees:
         stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
         stored_first_name = attendee.get(col_first_name, "").strip().lower()
-        stored_middle_name = attendee.get(col_middle_name, "").strip().lower()
+        stored_middle_name = attendee.get(col_middle_name, "").strip().lower().replace(".", "").replace(" ", "")
         stored_last_name = attendee.get(col_last_name, "").strip().lower()
+        stored_birthday = attendee.get(col_birthday, "").strip()
 
-        # Remove titles from stored first name
-        stored_first_name_cleaned = " ".join([word for word in stored_first_name.split() if word not in title_prefixes])
+        # Convert Birthday format
+        try:
+            stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            pass  
 
-        if stored_first_name_cleaned == first_name and stored_middle_name == middle_name and stored_last_name == last_name:
+        # Fuzzy matching for middle name (80% threshold)
+        middle_name_match = fuzz.partial_ratio(stored_middle_name, middle_name) > 80
+
+        if stored_first_name == first_name and middle_name_match and stored_last_name == last_name:
             full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
 
             stored_departure = attendee.get(col_departure, "").strip()
@@ -115,6 +122,7 @@ def search_attendee():
                 "Middle Name": stored_middle_name,
                 "Last Name": stored_last_name,
                 "Full Name": full_name,
+                "Birthday": stored_birthday,
                 "Email Address": attendee.get(col_email, ""),
                 "Room Type": attendee.get(col_room_type, ""),
                 "Departure Date": stored_departure,  
@@ -123,7 +131,7 @@ def search_attendee():
                 "Emergency Contact First Name": attendee.get(col_emergency_contact_first_name, ""),
                 "Emergency Contact Last Name": attendee.get(col_emergency_contact_last_name, ""),
                 "Emergency Contact Phone": attendee.get(col_emergency_contact_phone, ""),
-                "Food Allergies and Dietary Restrictions": food_allergies,
+                "Food Allergies and Dietary Restrictions": food_allergies,  
                 "Medical Conditions": attendee.get(col_medical_conditions, ""),  
                 "Accessibility Needs": attendee.get(col_accessibility_needs, ""),  
                 "Consent Privacy Policy": attendee.get(col_privacy_policy, ""),
@@ -133,7 +141,6 @@ def search_attendee():
             })
 
     return jsonify({"error": "Attendee not found"}), 404
-
 
 def find_column(headers, column_name, optional=False):
     """
