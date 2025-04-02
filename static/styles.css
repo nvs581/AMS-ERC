@@ -1,7 +1,7 @@
 /* General Styling */
 body {
   font-family: "Poppins", sans-serif;
-  background-color: #f4f4f9;
+  background-color: #800080;
   color: #333;
   margin: 0;
   padding: 0;
@@ -15,7 +15,7 @@ body {
 .container {
   max-width: 600px;
   width: 90%;
-  background: #fff;
+  background: #9797a8;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
