@@ -118,10 +118,10 @@ def search_attendee():
             flight_details_url = stored_flight_details_url if stored_flight_details_url and stored_submission_id else None
 
             return jsonify({
-                "First Name": stored_first_name,
-                "Middle Name": stored_middle_name,
-                "Last Name": stored_last_name,
-                "Full Name": full_name,
+                "First Name": stored_first_name.title(),
+                "Middle Name": stored_middle_name.title(),
+                "Last Name": stored_last_name.title(),
+                "Full Name": full_name.title(),
                 "Birthday": stored_birthday,
                 "Email Address": attendee.get(col_email, ""),
                 "Room Type": attendee.get(col_room_type, ""),
