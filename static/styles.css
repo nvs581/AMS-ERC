@@ -1,7 +1,7 @@
 /* General Styling */
 body {
   font-family: "Poppins", sans-serif;
-  background-color: #800080;
+  background-color: #6b6b6b;
   color: #333;
   margin: 0;
   padding: 0;
@@ -38,7 +38,7 @@ input[type="email"] {
 button {
   width: 100%;
   padding: 12px;
-  background: #007bff;
+  background: #800080;
   color: white;
   border: none;
   border-radius: 5px;
@@ -48,7 +48,7 @@ button {
 }
 
 button:hover {
-  background: #0056b3;
+  background: #8f5c8f;
 }
 
 /* Result Styling */
@@ -60,7 +60,7 @@ button:hover {
 }
 
 .details-column {
-  background-color: #f8f9fa;
+  background-color: #6d6d6d;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -69,8 +69,8 @@ button:hover {
 
 .details-column h3 {
   margin-bottom: 10px;
-  color: #007bff;
-  border-bottom: 2px solid #007bff;
+  color: #8f5c8f;
+  border-bottom: 2px solid #8f5c8f;
   padding-bottom: 5px;
 }
 
@@ -84,7 +84,7 @@ button:hover {
   display: inline-block;
   margin: 5px;
   padding: 10px 15px;
-  background-color: #007bff;
+  background-color: #800080;
   color: white;
   text-decoration: none;
   border: none;
@@ -93,11 +93,11 @@ button:hover {
 }
 
 .view-btn {
-  background-color: #28a745;
+  background-color: #800080;
 }
 
 .view-btn:hover {
-  background-color: #218838;
+  background-color: #8f5c8f;
 }
 
 /* Passport Section */
