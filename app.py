@@ -78,37 +78,26 @@ def search_attendee():
         stored_last_name = attendee.get(col_last_name, "").strip().lower()
         stored_birthday = attendee.get(col_birthday, "").strip()
 
-        # Remove titles from stored first name
-        stored_first_name_cleaned = " ".join([word for word in stored_first_name.split() if word not in title_prefixes])
-
-        if stored_first_name_cleaned == first_name and stored_middle_name == middle_name and stored_last_name == last_name:
-            full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
-
-            stored_departure = attendee.get(col_departure, "").strip()
-            stored_return = attendee.get(col_return, "").strip()
-
-            try:
-                stored_departure = datetime.datetime.strptime(stored_departure, "%m/%d/%Y").strftime("%Y-%m-%d")
-            except ValueError:
-                stored_departure = ""
-
-            try:
-                stored_return = datetime.datetime.strptime(stored_return, "%m/%d/%Y").strftime("%Y-%m-%d")
-            except ValueError:
-                stored_return = ""
+        # Remove title prefix from stored first name
+        name_parts = stored_first_name.split()
+        if name_parts and name_parts[0] in title_prefixes:
+            stored_first_name_cleaned = " ".join(name_parts[1:])  # Remove prefix
+        else:
+            stored_first_name_cleaned = stored_first_name  # No change
 
         # Convert Birthday format
         try:
             stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
         except ValueError:
-            pass  
+            stored_birthday = ""
 
         # Fuzzy matching for middle name (80% threshold)
         middle_name_match = fuzz.partial_ratio(stored_middle_name, middle_name) > 80
 
-        if stored_first_name == first_name and middle_name_match and stored_last_name == last_name:
-            full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
+        if stored_first_name_cleaned == first_name and middle_name_match and stored_last_name == last_name:
+            full_name = f"{stored_first_name_cleaned.title()} {stored_middle_name.title()} {stored_last_name.title()}".strip()
 
+            # Convert Departure and Return Dates
             stored_departure = attendee.get(col_departure, "").strip()
             stored_return = attendee.get(col_return, "").strip()
 
@@ -134,7 +123,7 @@ def search_attendee():
             # Ensure files belong to the correct Submission ID
             stored_passport_url = attendee.get(col_passport, "").strip()
             stored_flight_details_url = attendee.get(col_flight_details, "").strip()
-            
+
             passport_url = stored_passport_url if stored_passport_url and stored_submission_id else None
             flight_details_url = stored_flight_details_url if stored_flight_details_url and stored_submission_id else None
 
