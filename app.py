@@ -6,6 +6,7 @@ import datetime
 import requests
 from io import BytesIO
 import os
+import re
 
 app = Flask(__name__)
 
@@ -33,19 +34,22 @@ def home():
 from flask import Flask, request, jsonify
 import datetime
 
+def clean_name(name):
+    """Remove common prefixes like 'Dr.', trim spaces, and lowercase the name."""
+    return re.sub(r"^(dr\\.|mr\\.|ms\\.|mrs\\.)\\s*", "", name, flags=re.IGNORECASE).strip().lower()
+
 @app.route("/search", methods=["GET"])
 def search_attendee():
-    first_name = request.args.get("first_name", "").strip().lower()
-    middle_name = request.args.get("middle_name", "").strip().lower()
-    last_name = request.args.get("last_name", "").strip().lower()
+    first_name = clean_name(request.args.get("first_name", ""))
+    middle_name = clean_name(request.args.get("middle_name", ""))
+    last_name = clean_name(request.args.get("last_name", ""))
 
-    if not first_name or not middle_name or not last_name:
-        return jsonify({"error": "Missing first name, middle name, or last name"}), 400
+    if not first_name or not last_name:
+        return jsonify({"error": "Missing first name or last name"}), 400
 
     attendees = sheet.get_all_records()
     headers = sheet.row_values(1)
 
-    # Column names using original format
     col_submission_id = find_column(headers, "Submission ID|hidden-1")
     col_first_name = find_column(headers, "First Name|name-1-first-name")
     col_middle_name = find_column(headers, "Middle Name|name-1-middle-name")
@@ -67,16 +71,21 @@ def search_attendee():
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
 
-    if not col_first_name or not col_middle_name or not col_last_name or not col_submission_id:
+    if not col_first_name or not col_last_name or not col_submission_id:
         return jsonify({"error": "Required columns not found in sheet"}), 500
 
     for attendee in attendees:
         stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
-        stored_first_name = attendee.get(col_first_name, "").strip().lower()
-        stored_middle_name = attendee.get(col_middle_name, "").strip().lower()
-        stored_last_name = attendee.get(col_last_name, "").strip().lower()
+        stored_first_name = clean_name(attendee.get(col_first_name, ""))
+        stored_middle_name = clean_name(attendee.get(col_middle_name, ""))
+        stored_last_name = clean_name(attendee.get(col_last_name, ""))
 
-        if stored_first_name == first_name and stored_middle_name == middle_name and stored_last_name == last_name:
+        # Flexible matching for first, middle, and last names
+        if (
+            first_name in stored_first_name
+            and (not middle_name or middle_name in stored_middle_name or middle_name[0] == stored_middle_name[0])
+            and last_name in stored_last_name
+        ):
             full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
 
             stored_departure = attendee.get(col_departure, "").strip()
@@ -92,12 +101,8 @@ def search_attendee():
             except ValueError:
                 stored_return = ""
 
-            # Ensure files belong to the correct Submission ID
-            stored_passport_url = attendee.get(col_passport, "").strip()
-            stored_flight_details_url = attendee.get(col_flight_details, "").strip()
-            
-            passport_url = stored_passport_url if stored_passport_url and stored_submission_id else None
-            flight_details_url = stored_flight_details_url if stored_flight_details_url and stored_submission_id else None
+            passport_url = attendee.get(col_passport, "").strip() if stored_submission_id else None
+            flight_details_url = attendee.get(col_flight_details, "").strip() if stored_submission_id else None
 
             return jsonify({
                 "First Name": stored_first_name,
@@ -106,24 +111,23 @@ def search_attendee():
                 "Full Name": full_name,
                 "Email Address": attendee.get(col_email, ""),
                 "Room Type": attendee.get(col_room_type, ""),
-                "Departure Date": stored_departure,  
-                "Return Date": stored_return,  
+                "Departure Date": stored_departure,
+                "Return Date": stored_return,
                 "Emergency Contact Relationship": attendee.get(col_emergency_contact_relationship, ""),
                 "Emergency Contact First Name": attendee.get(col_emergency_contact_first_name, ""),
                 "Emergency Contact Last Name": attendee.get(col_emergency_contact_last_name, ""),
                 "Emergency Contact Phone": attendee.get(col_emergency_contact_phone, ""),
                 "Food Allergies and Dietary Restrictions": attendee.get(col_food_allergies, ""),
                 "Other Food & Dietary Restriction": attendee.get(col_other_dietary, ""),
-                "Medical Conditions": attendee.get(col_medical_conditions, ""),  
-                "Accessibility Needs": attendee.get(col_accessibility_needs, ""),  
+                "Medical Conditions": attendee.get(col_medical_conditions, ""),
+                "Accessibility Needs": attendee.get(col_accessibility_needs, ""),
                 "Consent Privacy Policy": attendee.get(col_privacy_policy, ""),
                 "Consent Photography": attendee.get(col_photography_consent, ""),
-                "Passport URL": attendee.get("Passport|upload-2", "").strip(),
-                "Flight Details URL": attendee.get("Flight Details|upload-1", "").strip(),
+                "Passport URL": passport_url,
+                "Flight Details URL": flight_details_url,
             })
 
     return jsonify({"error": "Attendee not found"}), 404
-
 
 def find_column(headers, column_name, optional=False):
     """
