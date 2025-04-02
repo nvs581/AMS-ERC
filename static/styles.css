@@ -9,10 +9,12 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  flex-direction: column;
 }
 
 .container {
   max-width: 600px;
+  width: 90%;
   background: #fff;
   padding: 20px;
   border-radius: 10px;
@@ -98,6 +100,7 @@ button:hover {
   background-color: #218838;
 }
 
+/* Passport Section */
 #passport-section {
   margin-top: 20px;
   text-align: center;
@@ -132,6 +135,8 @@ button:hover {
   position: fixed;
   top: 50%;
   left: 50%;
+  width: 100vw;
+  height: 100vh;
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.8);
   padding: 20px;
@@ -140,9 +145,10 @@ button:hover {
   z-index: 1000;
 }
 
-.modal img {
-  max-width: 90%;
-  border-radius: 10px;
+.modal img,
+.modal iframe {
+  max-width: 100%;
+  border-radius: 0;
 }
 
 .modal .close {
@@ -163,6 +169,7 @@ button:hover {
   align-items: center;
 }
 
+/* Emergency and Medical Info */
 .additional-info {
   margin-top: 20px;
   padding: 15px;
@@ -181,9 +188,54 @@ button:hover {
   padding-bottom: 5px;
 }
 
+/* Ensure text in details columns doesn't overflow */
 .details-column p {
   word-wrap: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
   overflow: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="email"] {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+  .container {
+    max-width: 90%;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="email"],
+  button {
+    font-size: 14px;
+    padding: 8px;
+  }
 }
