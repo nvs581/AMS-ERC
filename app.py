@@ -68,6 +68,8 @@ def search_attendee():
 
     if not col_first_name or not col_middle_name or not col_last_name or not col_birthday or not col_submission_id:
         return jsonify({"error": "Required columns not found in sheet"}), 500
+    
+    title_prefixes = ["mr.", "ms.", "mrs.", "dr.", "prof.", "sir", "madam"]
 
     for attendee in attendees:
         stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
@@ -75,6 +77,9 @@ def search_attendee():
         stored_middle_name = attendee.get(col_middle_name, "").strip().lower().replace(".", "").replace(" ", "")
         stored_last_name = attendee.get(col_last_name, "").strip().lower()
         stored_birthday = attendee.get(col_birthday, "").strip()
+
+        # Remove titles from stored first name
+        stored_first_name_cleaned = " ".join([word for word in stored_first_name.split() if word not in title_prefixes])
 
         # Convert Birthday format
         try:
