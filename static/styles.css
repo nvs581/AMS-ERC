@@ -1,8 +1,8 @@
 /* General Styling */
 body {
   font-family: "Poppins", sans-serif;
-  background-color: #6b6b6b;
-  color: #333;
+  background-color: #9797a8;
+  color: #000000;
   margin: 0;
   padding: 0;
   display: flex;
@@ -60,7 +60,7 @@ button:hover {
 }
 
 .details-column {
-  background-color: #6d6d6d;
+  background-color: #bebebe;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
