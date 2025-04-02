@@ -81,6 +81,22 @@ def search_attendee():
         # Remove titles from stored first name
         stored_first_name_cleaned = " ".join([word for word in stored_first_name.split() if word not in title_prefixes])
 
+        if stored_first_name_cleaned == first_name and stored_middle_name == middle_name and stored_last_name == last_name:
+            full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
+
+            stored_departure = attendee.get(col_departure, "").strip()
+            stored_return = attendee.get(col_return, "").strip()
+
+            try:
+                stored_departure = datetime.datetime.strptime(stored_departure, "%m/%d/%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                stored_departure = ""
+
+            try:
+                stored_return = datetime.datetime.strptime(stored_return, "%m/%d/%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                stored_return = ""
+
         # Convert Birthday format
         try:
             stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
