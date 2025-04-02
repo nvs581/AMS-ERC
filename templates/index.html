@@ -74,15 +74,15 @@
           event.preventDefault();
 
           let firstName = document.getElementById("first_name").value;
+          let middleName = document.getElementById("middle_name").value;
           let lastName = document.getElementById("last_name").value;
-          let birthday = document.getElementById("birthday").value;
 
           fetch(
             `/search?first_name=${encodeURIComponent(
               firstName
-            )}&last_name=${encodeURIComponent(
-              lastName
-            )}&birthday=${encodeURIComponent(birthday)}`
+            )}&middle_name=${encodeURIComponent(
+              middleName
+            )}&last_name=${encodeURIComponent(lastName)}`
           )
             .then((response) => response.json())
             .then((data) => {
@@ -95,8 +95,8 @@
                   <div class="details-column">
                     <h3>Personal Details</h3>
                     <p><strong>First Name:</strong> ${data["First Name"]}</p>
+                    <p><strong>Middle Name:</strong> ${data["Middle Name"]}</p>
                     <p><strong>Last Name:</strong> ${data["Last Name"]}</p>
-                    <p><strong>Birthday:</strong> ${data.Birthday}</p>
                     <p><strong>Email Address:</strong> ${
                       data["Email Address"]
                     }</p>
@@ -151,7 +151,6 @@
                           </div>`
                       : "<p>No Flight Details Available.</p>"
                   }
-
                 </div>
               `;
 

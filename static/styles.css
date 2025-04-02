@@ -98,7 +98,6 @@ button:hover {
   background-color: #218838;
 }
 
-/* Passport Section */
 #passport-section {
   margin-top: 20px;
   text-align: center;
@@ -164,7 +163,6 @@ button:hover {
   align-items: center;
 }
 
-/* Emergency and Medical Info */
 .additional-info {
   margin-top: 20px;
   padding: 15px;
@@ -183,7 +181,6 @@ button:hover {
   padding-bottom: 5px;
 }
 
-/* Ensure text in details columns doesn't overflow */
 .details-column p {
   word-wrap: break-word;
   overflow-wrap: break-word;
