@@ -39,18 +39,26 @@
       const debounceTime = 300; // ms
 
       // Search input event listener
+      // Search input event listener
       document
         .getElementById("search-input")
         .addEventListener("input", function () {
           clearTimeout(debounceTimeout);
           const query = this.value.trim();
 
+          // Clear and hide suggestions container if query is too short
           if (query.length < 2) {
             document.getElementById("suggestions-container").innerHTML = "";
             document.getElementById("suggestions-container").style.display =
               "none";
             return;
           }
+
+          // Set display to block BEFORE fetching suggestions
+          document.getElementById("suggestions-container").style.display =
+            "block";
+          document.getElementById("suggestions-container").innerHTML =
+            "<div class='suggestion-item'>Loading...</div>";
 
           debounceTimeout = setTimeout(() => {
             fetchSuggestions(query);
