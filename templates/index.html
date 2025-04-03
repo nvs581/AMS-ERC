@@ -16,36 +16,15 @@
   <body>
     <div class="container">
       <h1>RESET Summit 2025 Participant Information</h1>
-      <form id="searchForm">
-        <label for="first_name">First Name:</label>
+      <div class="search-container">
         <input
           type="text"
-          id="first_name"
-          name="first_name"
-          placeholder="Enter First Name (No Prefixes, e.g., John, Maria)"
-          required
+          id="search-input"
+          placeholder="Start typing participant name..."
+          autocomplete="off"
         />
-
-        <label for="middle_name">Middle Name:</label>
-        <input
-          type="text"
-          id="middle_name"
-          name="middle_name"
-          placeholder="Enter Middle Name (or Initial)"
-          required
-        />
-
-        <label for="last_name">Last Name:</label>
-        <input
-          type="text"
-          id="last_name"
-          name="last_name"
-          placeholder="Enter Last Name"
-          required
-        />
-
-        <button type="submit">Search</button>
-      </form>
+        <div id="suggestions-container" class="suggestions-container"></div>
+      </div>
       <div id="result"></div>
     </div>
 
@@ -55,52 +34,135 @@
     </div>
 
     <script>
-      function openModal(fileUrl) {
-        let modalContent = document.getElementById("modalContent");
+      // Variables for controlling search timing
+      let debounceTimeout;
+      const debounceTime = 300; // ms
 
-        if (fileUrl.endsWith(".pdf")) {
-          modalContent.innerHTML = `
-      <iframe src="${fileUrl}" width="100%" height="500px"></iframe>
-      <a href="${fileUrl}" target="_blank" class="download-btn">Download PDF</a>
-    `;
-        } else {
-          modalContent.innerHTML = `<img src="${fileUrl}" style="max-width: 100%; border-radius: 10px;" />`;
-        }
-
-        document.getElementById("imageModal").classList.add("show");
-      }
-
-      function closeModal(event) {
-        if (
-          event.target === document.getElementById("imageModal") ||
-          event.target.classList.contains("close")
-        ) {
-          document.getElementById("imageModal").classList.remove("show");
-        }
-      }
+      // Search input event listener
       document
-        .getElementById("searchForm")
-        .addEventListener("submit", function (event) {
-          event.preventDefault();
+        .getElementById("search-input")
+        .addEventListener("input", function () {
+          clearTimeout(debounceTimeout);
+          const query = this.value.trim();
 
-          let firstName = document.getElementById("first_name").value;
-          let middleName = document.getElementById("middle_name").value;
-          let lastName = document.getElementById("last_name").value;
+          if (query.length < 2) {
+            document.getElementById("suggestions-container").innerHTML = "";
+            document.getElementById("suggestions-container").style.display =
+              "none";
+            return;
+          }
 
-          fetch(
-            `/search?first_name=${encodeURIComponent(
-              firstName
-            )}&middle_name=${encodeURIComponent(
-              middleName
-            )}&last_name=${encodeURIComponent(lastName)}`
-          )
-            .then((response) => response.json())
-            .then((data) => {
-              let resultDiv = document.getElementById("result");
-              if (data.error) {
-                resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
-              } else {
-                resultDiv.innerHTML = `
+          debounceTimeout = setTimeout(() => {
+            fetchSuggestions(query);
+          }, debounceTime);
+        });
+
+      // Fetch search suggestions as user types
+      function fetchSuggestions(query) {
+        fetch(`/search_suggestions?query=${encodeURIComponent(query)}`)
+          .then((response) => response.json())
+          .then((suggestions) => {
+            displaySuggestions(suggestions);
+          })
+          .catch((error) => {
+            console.error("Error fetching suggestions:", error);
+          });
+      }
+
+      // Display suggestions in dropdown
+      function displaySuggestions(suggestions) {
+        const suggestionsContainer = document.getElementById(
+          "suggestions-container"
+        );
+
+        if (suggestions.length === 0) {
+          suggestionsContainer.innerHTML =
+            "<div class='suggestion-item'>No results found</div>";
+          suggestionsContainer.style.display = "block";
+          return;
+        }
+
+        let suggestionsHTML = "";
+        suggestions.forEach((suggestion) => {
+          suggestionsHTML += `
+            <div class="suggestion-item" 
+                 data-submission-id="${suggestion.submission_id}"
+                 data-first-name="${suggestion.first_name}"
+                 data-middle-name="${suggestion.middle_name}"
+                 data-last-name="${suggestion.last_name}">
+              ${suggestion.name}
+            </div>
+          `;
+        });
+
+        suggestionsContainer.innerHTML = suggestionsHTML;
+        suggestionsContainer.style.display = "block";
+
+        // Add click event listeners to suggestions
+        document.querySelectorAll(".suggestion-item").forEach((item) => {
+          item.addEventListener("click", function () {
+            const submissionId = this.getAttribute("data-submission-id");
+            // If using submission ID approach:
+            if (submissionId) {
+              fetchParticipantDetails(submissionId);
+            } else {
+              // Fallback to name-based search
+              const firstName = this.getAttribute("data-first-name");
+              const middleName = this.getAttribute("data-middle-name");
+              const lastName = this.getAttribute("data-last-name");
+              fetchParticipantDetailsByName(firstName, middleName, lastName);
+            }
+
+            // Clear search and suggestions
+            document.getElementById("search-input").value =
+              this.textContent.trim();
+            document.getElementById("suggestions-container").style.display =
+              "none";
+          });
+        });
+      }
+
+      // Fetch participant details by submission ID
+      function fetchParticipantDetails(submissionId) {
+        fetch(`/search?submission_id=${encodeURIComponent(submissionId)}`)
+          .then((response) => response.json())
+          .then((data) => {
+            displayParticipantDetails(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching attendee details:", error);
+            document.getElementById("result").innerHTML =
+              "<p style='color: red;'>An error occurred while fetching details. Please try again.</p>";
+          });
+      }
+
+      // Fallback: Fetch participant details by name
+      function fetchParticipantDetailsByName(firstName, middleName, lastName) {
+        fetch(
+          `/search?first_name=${encodeURIComponent(
+            firstName
+          )}&middle_name=${encodeURIComponent(
+            middleName
+          )}&last_name=${encodeURIComponent(lastName)}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            displayParticipantDetails(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching attendee details:", error);
+            document.getElementById("result").innerHTML =
+              "<p style='color: red;'>An error occurred while fetching details. Please try again.</p>";
+          });
+      }
+
+      // Display participant details (same as your original code)
+      function displayParticipantDetails(data) {
+        let resultDiv = document.getElementById("result");
+        if (data.error) {
+          resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+        } else {
+          resultDiv.innerHTML = `
           <div class="details-container">
             <div class="details-column">
               <h3>Personal Details</h3>
@@ -112,6 +174,7 @@
               <p><strong>Room Type:</strong> ${data["Room Type"]}</p>
               <p><strong>Departure Date:</strong> ${data["Departure Date"]}</p>
               <p><strong>Return Date:</strong> ${data["Return Date"]}</p>
+              <p><strong>Delegates Role:</strong> ${data["Delegates Role"]}</p>
             </div>
             
             <div class="details-column">
@@ -182,49 +245,77 @@
           </div>
         `;
 
-                document
-                  .getElementById("view-passport")
-                  .addEventListener("click", function () {
-                    document.getElementById(
-                      "passport-container"
-                    ).style.display = "block";
-                  });
+          // Setup passport view button
+          if (data["Passport URL"]) {
+            document
+              .getElementById("view-passport")
+              .addEventListener("click", function () {
+                document.getElementById("passport-container").style.display =
+                  "block";
+              });
 
-                document
-                  .getElementById("submit-passport-key")
-                  .addEventListener("click", function () {
-                    let enteredKey =
-                      document.getElementById("passport-key").value;
-                    fetch("/validate_passcode", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ passcode: enteredKey }),
-                    })
-                      .then((response) => response.json())
-                      .then((responseData) => {
-                        if (responseData.status === "success") {
-                          let passportImage =
-                            document.getElementById("passport-image");
-                          let storedPassportUrl = data["Passport URL"];
-                          if (storedPassportUrl) {
-                            passportImage.src = storedPassportUrl;
-                            passportImage.style.display = "block";
-                          } else {
-                            alert("No matching Passport file found.");
-                          }
-                        } else {
-                          alert("Incorrect passcode!");
-                        }
-                      });
+            document
+              .getElementById("submit-passport-key")
+              .addEventListener("click", function () {
+                let enteredKey = document.getElementById("passport-key").value;
+                fetch("/validate_passcode", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ passcode: enteredKey }),
+                })
+                  .then((response) => response.json())
+                  .then((responseData) => {
+                    if (responseData.status === "success") {
+                      let passportImage =
+                        document.getElementById("passport-image");
+                      let storedPassportUrl = data["Passport URL"];
+                      if (storedPassportUrl) {
+                        passportImage.src = storedPassportUrl;
+                        passportImage.style.display = "block";
+                      } else {
+                        alert("No matching Passport file found.");
+                      }
+                    } else {
+                      alert("Incorrect passcode!");
+                    }
                   });
-              }
-            })
-            .catch((error) => {
-              console.error("Error fetching attendee details:", error);
-              document.getElementById("result").innerHTML =
-                "<p style='color: red;'>An error occurred while fetching details. Please try again.</p>";
-            });
-        });
+              });
+          }
+        }
+      }
+
+      // Modal functions (unchanged)
+      function openModal(fileUrl) {
+        let modalContent = document.getElementById("modalContent");
+
+        if (fileUrl.endsWith(".pdf")) {
+          modalContent.innerHTML = `
+            <iframe src="${fileUrl}" width="100%" height="500px"></iframe>
+            <a href="${fileUrl}" target="_blank" class="download-btn">Download PDF</a>
+          `;
+        } else {
+          modalContent.innerHTML = `<img src="${fileUrl}" style="max-width: 100%; border-radius: 10px;" />`;
+        }
+
+        document.getElementById("imageModal").classList.add("show");
+      }
+
+      function closeModal(event) {
+        if (
+          event.target === document.getElementById("imageModal") ||
+          event.target.classList.contains("close")
+        ) {
+          document.getElementById("imageModal").classList.remove("show");
+        }
+      }
+
+      // Close suggestions when clicking outside
+      document.addEventListener("click", function (event) {
+        if (!event.target.closest(".search-container")) {
+          document.getElementById("suggestions-container").style.display =
+            "none";
+        }
+      });
     </script>
   </body>
 </html>
