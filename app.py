@@ -43,7 +43,6 @@ def search_attendee():
     attendees = sheet.get_all_records()
     headers = sheet.row_values(1)
 
-    # Column names using original format
     col_submission_id = find_column(headers, "Submission ID|hidden-1")
     col_first_name = find_column(headers, "First Name|name-1-first-name")
     col_middle_name = find_column(headers, "Middle Name|name-1-middle-name")
@@ -78,26 +77,22 @@ def search_attendee():
         stored_last_name = attendee.get(col_last_name, "").strip().lower()
         stored_birthday = attendee.get(col_birthday, "").strip()
 
-        # Remove title prefix from stored first name
         name_parts = stored_first_name.split()
         if name_parts and name_parts[0] in title_prefixes:
-            stored_first_name_cleaned = " ".join(name_parts[1:])  # Remove prefix
+            stored_first_name_cleaned = " ".join(name_parts[1:]) 
         else:
-            stored_first_name_cleaned = stored_first_name  # No change
+            stored_first_name_cleaned = stored_first_name 
 
-        # Convert Birthday format
         try:
             stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
         except ValueError:
             stored_birthday = ""
 
-        # Fuzzy matching for middle name (80% threshold)
         middle_name_match = fuzz.partial_ratio(stored_middle_name, middle_name) > 80
 
         if stored_first_name_cleaned == first_name and middle_name_match and stored_last_name == last_name:
             full_name = f"{stored_first_name_cleaned.title()} {stored_middle_name.title()} {stored_last_name.title()}".strip()
 
-            # Convert Departure and Return Dates
             stored_departure = attendee.get(col_departure, "").strip()
             stored_return = attendee.get(col_return, "").strip()
 
@@ -111,7 +106,6 @@ def search_attendee():
             except ValueError:
                 stored_return = ""
 
-            # Handle Food Allergies and Dietary Restrictions
             food_allergies = attendee.get(col_food_allergies, "").strip()
             other_dietary_restriction = attendee.get(col_other_dietary, "").strip()
 
@@ -120,7 +114,6 @@ def search_attendee():
                 allergies_list = [other_dietary_restriction if item == "Others" else item for item in allergies_list]
                 food_allergies = ", ".join(filter(None, allergies_list))
 
-            # Ensure files belong to the correct Submission ID
             stored_passport_url = attendee.get(col_passport, "").strip()
             stored_flight_details_url = attendee.get(col_flight_details, "").strip()
 
