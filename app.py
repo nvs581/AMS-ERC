@@ -48,6 +48,7 @@ def search_attendee():
     col_middle_name = find_column(headers, "Middle Name|name-1-middle-name")
     col_last_name = find_column(headers, "Last Name|name-1-last-name")
     col_birthday = find_column(headers, "Birthday|date-1")
+    col_delegates_role = find_column(headers, "Category")
     col_departure = find_column(headers, "Departure Date|date-2")
     col_return = find_column(headers, "Return Date|date-3")
     col_medical_conditions = find_column(headers, "Medical Condition/s|textarea-2")
@@ -141,6 +142,7 @@ def search_attendee():
                 "Consent Photography": attendee.get(col_photography_consent, ""),
                 "Passport URL": passport_url,
                 "Flight Details URL": flight_details_url,
+                "Delegates Role": attendee.get(col_delegates_role, "Not Specified") 
             })
 
     return jsonify({"error": "Attendee not found"}), 404
