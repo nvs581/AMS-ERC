@@ -68,7 +68,7 @@ def search_suggestions():
         last_name = attendee.get(col_last_name, "").strip()
         full_name = f"{first_name} {middle_name} {last_name}".strip()
         role = attendee.get(col_delegates_role, "Not Specified").strip()
-        submission_id = attendee.get(col_submission_id, "").strip()
+        submission_id = str(attendee.get(col_submission_id, "")).strip()
         
         # Check if query matches any part of the name
         if (query in first_name.lower() or 
@@ -94,7 +94,7 @@ def search_attendee():
     Updated search endpoint to handle both submission_id and name-based searches
     """
     # Check if searching by submission ID
-    submission_id = request.args.get("submission_id", "").strip()
+    submission_id = str(request.args.get("submission_id", "").strip())
     
     # Get all records and headers once
     attendees = sheet.get_all_records()
