@@ -207,14 +207,15 @@ def process_attendee_data(attendee, headers, role=None):
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
     # 
-    col_airline_arrival = find_column(headers, "Airline|air-line-1", optional=True)
-    col_flight_num_arrival = find_column(headers, "Flight Number|fn-1", optional=True)
-    col_country_origin = find_column(headers, "Country of Origin", optional=True)
-    col_departure_time_arrival = find_column(headers, "Departure Time|deptime-1", optional=True)
-    col_arrival_time_bali = find_column(headers, "arrival-bali", optional=True)
-    col_airline_departure = find_column(headers, "Airline|air-line-2", optional=True)
-    col_flight_num_departure = find_column(headers, "Flight Number|fn-2", optional=True)
-    col_departure_time_departure = find_column(headers, "Departure Time|deptime-2", optional=True)
+    col_flight_details = find_column(headers, "Flight Details|upload-1")
+    col_airline_arrival = find_column(headers, "Airline|air-line-1")
+    col_flight_num_arrival = find_column(headers, "Flight Number|fn-1")
+    col_country_origin = find_column(headers, "Country of Origin")
+    col_departure_time_arrival = find_column(headers, "Departure Time|deptime-1")
+    col_arrival_time_bali = find_column(headers, "arrival-bali")
+    col_airline_departure = find_column(headers, "Airline|air-line-2")
+    col_flight_num_departure = find_column(headers, "Flight Number|fn-2")
+    col_departure_time_departure = find_column(headers, "Departure Time|deptime-2")
     
     # Basic attendee info
     stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
@@ -285,14 +286,14 @@ def process_attendee_data(attendee, headers, role=None):
         "Passport URL": passport_url,
         "Flight Details URL": flight_details_url,
         "Delegates Role": attendee.get(col_delegates_role, "Not Specified"),
-        "Airline (Arrival)": attendee.get(col_airline_arrival, "") if col_airline_arrival else "",
-        "Flight Number (Arrival)": attendee.get(col_flight_num_arrival, "") if col_flight_num_arrival else "",
-        "Country of Origin": attendee.get(col_country_origin, "") if col_country_origin else "",
-        "Departure Time (Arrival)": attendee.get(col_departure_time_arrival, "") if col_departure_time_arrival else "",
-        "Arrival Time in Bali": attendee.get(col_arrival_time_bali, "") if col_arrival_time_bali else "",
-        "Airline (Departure)": attendee.get(col_airline_departure, "") if col_airline_departure else "",
-        "Flight Number (Departure)": attendee.get(col_flight_num_departure, "") if col_flight_num_departure else "",
-        "Departure Time (Departure)": attendee.get(col_departure_time_departure, "") if col_departure_time_departure else ""
+        "Airline (Arrival)": attendee.get(col_airline_arrival, ""),
+        "Flight Number (Arrival)": attendee.get(col_flight_num_arrival, ""),
+        "Country of Origin": attendee.get(col_country_origin, ""),
+        "Departure Time (Arrival)": attendee.get(col_departure_time_arrival, ""),
+        "Arrival Time in Bali": attendee.get(col_arrival_time_bali, ""),
+        "Airline (Departure)": attendee.get(col_airline_departure, ""),
+        "Flight Number (Departure)": attendee.get(col_flight_num_departure, ""),
+        "Departure Time (Departure)": attendee.get(col_departure_time_departure, "")
     }
     
     # Filter based on role
