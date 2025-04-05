@@ -341,6 +341,7 @@ def process_attendee_data(attendee, headers, role=None):
             "Full Name": full_data["Full Name"],
             "Age": full_data["Age"],
             "Email Address": full_data["Email Address"],
+            "Organization": full_data["Organization"],
             "Room Type": full_data["Room Type"],
             "Departure Date": full_data["Departure Date"],
             "Return Date": full_data["Return Date"],
