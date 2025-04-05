@@ -105,6 +105,20 @@ button:hover {
   background-color: #8f5c8f;
 }
 
+.erc-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hotel-view,
+.airport-view {
+  background-color: #bebebe;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
 /* Password Section */
 #password-section {
   background-color: #bebebe;
