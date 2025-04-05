@@ -282,9 +282,26 @@
                     <p><strong>Departure Time:</strong> ${data["Departure Time (Departure)"]}</p>
                   </div>
                 `
-                : "<p>No Flight Details Available.</p>"
+                : `
+                  <p>No Flight Details Available.</p>
+                  <div class="flight-info">
+                    <h4>Arrival Flight Information</h4>
+                    <p><strong>Airline:</strong> ${data["Airline (Arrival)"]}</p>
+                    <p><strong>Flight Number:</strong> ${data["Flight Number (Arrival)"]}</p>
+                    <p><strong>Country of Origin:</strong> ${data["Country of Origin"]}</p>
+                    <p><strong>Departure Time:</strong> ${data["Departure Time (Arrival)"]}</p>
+                    <p><strong>Arrival Time in Bali:</strong> ${data["Arrival Time in Bali"]}</p>
+                  </div>
+                  <div class="flight-info">
+                    <h4>Departure Flight Information</h4>
+                    <p><strong>Airline:</strong> ${data["Airline (Departure)"]}</p>
+                    <p><strong>Flight Number:</strong> ${data["Flight Number (Departure)"]}</p>
+                    <p><strong>Departure Time:</strong> ${data["Departure Time (Departure)"]}</p>
+                  </div>
+                `
             }
           </div>
+
         `;
 
           // Setup passport view button
