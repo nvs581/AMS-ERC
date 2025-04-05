@@ -22,6 +22,7 @@ PASSPORT_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_PASSPORT_FOLDER_ID")
 FLIGHT_DETAILS_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FLIGHT_DETAILS_FOLDER_ID")
 HOTEL_ACCESS_PASSCODE = os.getenv("HOTEL_ACCESS_PASSCODE")
 AIRPORT_ACCESS_PASSCODE = os.getenv("AIRPORT_ACCESS_PASSCODE")
+ERC_ACCESS_PASSCODE = os.getenv("ERC_ACCESS_PASSCODE")
 
 creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
 gc = gspread.authorize(creds)
@@ -348,8 +349,10 @@ def process_attendee_data(attendee, headers, role=None):
             "Flight Number (Departure)": full_data["Flight Number (Departure)"],
             "Departure Time (Departure)": full_data["Departure Time (Departure)"]
         }
+    elif role == "erc":
+        filtered_data = full_data
     else:
-        filtered_data = full_data 
+        filtered_data = full_data
     
     return jsonify(filtered_data)
 
@@ -362,6 +365,8 @@ def validate_role_password():
     if role == "hotel" and entered_passcode == HOTEL_ACCESS_PASSCODE:
         return jsonify({"status": "success"})
     elif role == "airport" and entered_passcode == AIRPORT_ACCESS_PASSCODE:
+        return jsonify({"status": "success"})
+    elif role == "erc" and entered_passcode == ERC_ACCESS_PASSCODE:
         return jsonify({"status": "success"})
     return jsonify({"status": "error", "message": "Incorrect password for this role"}), 403
 

@@ -97,6 +97,14 @@ button:hover {
   background-color: #3d5166;
 }
 
+#erc-team-btn {
+  background-color: #800080;
+}
+
+#erc-team-btn:hover {
+  background-color: #8f5c8f;
+}
+
 /* Password Section */
 #password-section {
   background-color: #bebebe;

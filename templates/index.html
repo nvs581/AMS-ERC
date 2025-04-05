@@ -24,8 +24,9 @@
         <div class="role-buttons">
           <button id="hotel-staff-btn" class="role-btn">Hotel Staff</button>
           <button id="airport-staff-btn" class="role-btn">
-            Airport Transfers Staff
+            Airport Transfer Staff
           </button>
+          <button id="erc-team-btn" class="role-btn">ERC Team</button>
         </div>
       </div>
 
@@ -72,6 +73,7 @@
       let currentRole = null;
       const HOTEL_ROLE = "hotel";
       const AIRPORT_ROLE = "airport";
+      const ERC_ROLE = "erc";
 
       document
         .getElementById("hotel-staff-btn")
@@ -83,6 +85,12 @@
         .getElementById("airport-staff-btn")
         .addEventListener("click", function () {
           showPasswordSection(AIRPORT_ROLE);
+        });
+
+      document
+        .getElementById("erc-team-btn")
+        .addEventListener("click", function () {
+          showPasswordSection(ERC_ROLE);
         });
 
       document
@@ -110,7 +118,9 @@
         const roleTitle =
           role === HOTEL_ROLE
             ? "Hotel Staff Authentication"
-            : "Airport Transfers Staff Authentication";
+            : role === AIRPORT_ROLE
+            ? "Airport Transfers Staff Authentication"
+            : "ERC Team Authentication";
         document.getElementById("role-title").textContent = roleTitle;
         document.getElementById("role-selection").style.display = "none";
         document.getElementById("password-section").style.display = "block";
@@ -165,7 +175,11 @@
         document.getElementById("password-section").style.display = "none";
 
         const roleText =
-          role === HOTEL_ROLE ? "Hotel Staff" : "Airport Transfers Staff";
+          role === HOTEL_ROLE
+            ? "Hotel Staff"
+            : role === AIRPORT_ROLE
+            ? "Airport Transfers Staff"
+            : "ERC Team";
         document.getElementById(
           "current-role-indicator"
         ).innerHTML = `<p class="role-indicator">Logged in as: <strong>${roleText}</strong></p>`;
