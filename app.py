@@ -31,18 +31,148 @@ drive_service = build("drive", "v3", credentials=creds)
 def home():
     return render_template("index.html")
 
+def find_column(headers, column_name, optional=False):
+    """
+    Find the exact column name dynamically using unique format.
+    If optional=True, return None if not found.
+    """
+    for header in headers:
+        if column_name.lower() in header.lower():
+            return header
+    return None if optional else column_name
+
+@app.route("/search_suggestions", methods=["GET"])
+def search_suggestions():
+    """
+    New endpoint to provide autocomplete suggestions as user types
+    """
+    query = request.args.get("query", "").strip().lower()
+    
+    if not query or len(query) < 2:
+        return jsonify([])
+        
+    attendees = sheet.get_all_records()
+    headers = sheet.row_values(1)
+    
+    col_submission_id = find_column(headers, "Submission ID|hidden-1")
+    col_first_name = find_column(headers, "First Name|name-1-first-name")
+    col_middle_name = find_column(headers, "Middle Name|name-1-middle-name")
+    col_last_name = find_column(headers, "Last Name|name-1-last-name")
+    col_delegates_role = find_column(headers, "Category")
+    
+    suggestions = []
+    
+    for attendee in attendees:
+        first_name = attendee.get(col_first_name, "").strip()
+        middle_name = attendee.get(col_middle_name, "").strip() 
+        last_name = attendee.get(col_last_name, "").strip()
+        full_name = f"{first_name} {middle_name} {last_name}".strip()
+        role = attendee.get(col_delegates_role, "Not Specified").strip()
+        submission_id = str(attendee.get(col_submission_id, "")).strip()
+        
+        # Check if query matches any part of the name
+        if (query in first_name.lower() or 
+            query in middle_name.lower() or 
+            query in last_name.lower() or
+            query in full_name.lower()):
+            
+            # Add to suggestions
+            suggestions.append({
+                "name": full_name,
+                "role": role,
+                "submission_id": submission_id,
+                "first_name": first_name.lower(),
+                "middle_name": middle_name.lower().replace(".", "").replace(" ", ""),
+                "last_name": last_name.lower()
+            })
+    
+    return jsonify(suggestions)
+
 @app.route("/search", methods=["GET"])
 def search_attendee():
+    """
+    Updated search endpoint to handle both submission_id and name-based searches
+    """
+    # Check if searching by submission ID
+    submission_id = str(request.args.get("submission_id", "").strip())
+    
+    # Get all records and headers once
+    attendees = sheet.get_all_records()
+    headers = sheet.row_values(1)
+    
+    # Find all column names
+    col_submission_id = find_column(headers, "Submission ID|hidden-1")
+    col_first_name = find_column(headers, "First Name|name-1-first-name")
+    col_middle_name = find_column(headers, "Middle Name|name-1-middle-name")
+    col_last_name = find_column(headers, "Last Name|name-1-last-name")
+    col_birthday = find_column(headers, "Birthday|date-1")
+    col_delegates_role = find_column(headers, "Category")
+    col_departure = find_column(headers, "Departure Date|date-2")
+    col_return = find_column(headers, "Return Date|date-3")
+    col_medical_conditions = find_column(headers, "Medical Condition/s|textarea-2")
+    col_accessibility_needs = find_column(headers, "Accessibility Need/s|textarea-3")
+    col_email = find_column(headers, "Email Address|email-1")
+    col_room_type = find_column(headers, "Room Type|select-1")
+    col_emergency_contact_relationship = find_column(headers, "Relationship to Emergency Contact|text-2")
+    col_emergency_contact_first_name = find_column(headers, "First Name|name-2-first-name")
+    col_emergency_contact_last_name = find_column(headers, "Last Name|name-2-last-name")
+    col_emergency_contact_phone = find_column(headers, "Phone Number|phone-1")
+    col_food_allergies = find_column(headers, "Food Allergies and Dietary Restrictions|checkbox-1")
+    col_other_dietary = find_column(headers, "Other Food and Dietary Restriction|textarea-1")
+    col_privacy_policy = find_column(headers, "I agree to the event's privacy policy and consent to the collection of my information for event purposes.|radio-1")
+    col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
+    col_passport = find_column(headers, "Passport|upload-2")
+    col_flight_details = find_column(headers, "Flight Details|upload-1")
+
+    if not col_submission_id or not col_first_name or not col_middle_name or not col_last_name or not col_birthday:
+        return jsonify({"error": "Required columns not found in sheet"}), 500
+    
+    # Search by submission ID if provided
+    if submission_id:
+        for attendee in attendees:
+            stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
+            
+            if stored_submission_id == submission_id:
+                # Process this attendee's data
+                return process_attendee_data(attendee, headers)
+                
+        return jsonify({"error": "Attendee not found"}), 404
+    
+    # Otherwise, search by name components (original functionality)
     first_name = request.args.get("first_name", "").strip().lower()
     middle_name = request.args.get("middle_name", "").strip().lower().replace(".", "").replace(" ", "")
     last_name = request.args.get("last_name", "").strip().lower()
 
-    if not first_name or not last_name or not middle_name:
-        return jsonify({"error": "Missing first name, middle name, or last name"}), 400
+    if not first_name or not last_name:
+        return jsonify({"error": "Missing name information"}), 400
+    
+    title_prefixes = ["mr.", "ms.", "mrs.", "dr.", "prof.", "sir", "madam"]
 
-    attendees = sheet.get_all_records()
-    headers = sheet.row_values(1)
+    for attendee in attendees:
+        stored_first_name = attendee.get(col_first_name, "").strip().lower()
+        stored_middle_name = attendee.get(col_middle_name, "").strip().lower().replace(".", "").replace(" ", "")
+        stored_last_name = attendee.get(col_last_name, "").strip().lower()
 
+        name_parts = stored_first_name.split()
+        if name_parts and name_parts[0] in title_prefixes:
+            stored_first_name_cleaned = " ".join(name_parts[1:]) 
+        else:
+            stored_first_name_cleaned = stored_first_name 
+
+        middle_name_match = fuzz.partial_ratio(stored_middle_name, middle_name) > 80
+
+        if stored_first_name_cleaned == first_name and middle_name_match and stored_last_name == last_name:
+            # Process this attendee's data
+            return process_attendee_data(attendee, headers)
+
+    return jsonify({"error": "Attendee not found"}), 404
+
+def process_attendee_data(attendee, headers):
+    """
+    Process attendee data and return formatted JSON response
+    Extracted to avoid code duplication
+    """
+    # Find all column names
     col_submission_id = find_column(headers, "Submission ID|hidden-1")
     col_first_name = find_column(headers, "First Name|name-1-first-name")
     col_middle_name = find_column(headers, "Middle Name|name-1-middle-name")
@@ -65,97 +195,77 @@ def search_attendee():
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
-
-    if not col_first_name or not col_middle_name or not col_last_name or not col_birthday or not col_submission_id:
-        return jsonify({"error": "Required columns not found in sheet"}), 500
     
-    title_prefixes = ["mr.", "ms.", "mrs.", "dr.", "prof.", "sir", "madam"]
+    # Basic attendee info
+    stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
+    stored_first_name = attendee.get(col_first_name, "").strip()
+    stored_middle_name = attendee.get(col_middle_name, "").strip()
+    stored_last_name = attendee.get(col_last_name, "").strip()
+    stored_birthday = attendee.get(col_birthday, "").strip()
+    
+    # Format full name
+    full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
+    
+    # Format birthday
+    try:
+        stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        stored_birthday = ""
+    
+    # Format dates
+    stored_departure = attendee.get(col_departure, "").strip()
+    stored_return = attendee.get(col_return, "").strip()
 
-    for attendee in attendees:
-        stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
-        stored_first_name = attendee.get(col_first_name, "").strip().lower()
-        stored_middle_name = attendee.get(col_middle_name, "").strip().lower().replace(".", "").replace(" ", "")
-        stored_last_name = attendee.get(col_last_name, "").strip().lower()
-        stored_birthday = attendee.get(col_birthday, "").strip()
+    try:
+        stored_departure = datetime.datetime.strptime(stored_departure, "%m/%d/%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        stored_departure = ""
 
-        name_parts = stored_first_name.split()
-        if name_parts and name_parts[0] in title_prefixes:
-            stored_first_name_cleaned = " ".join(name_parts[1:]) 
-        else:
-            stored_first_name_cleaned = stored_first_name 
+    try:
+        stored_return = datetime.datetime.strptime(stored_return, "%m/%d/%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        stored_return = ""
+    
+    # Handle food allergies
+    food_allergies = attendee.get(col_food_allergies, "").strip()
+    other_dietary_restriction = attendee.get(col_other_dietary, "").strip()
 
-        try:
-            stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
-        except ValueError:
-            stored_birthday = ""
+    if "Others" in food_allergies:
+        allergies_list = [item.strip() for item in food_allergies.split(",")]
+        allergies_list = [other_dietary_restriction if item == "Others" else item for item in allergies_list]
+        food_allergies = ", ".join(filter(None, allergies_list))
+    
+    # Handle file URLs
+    stored_passport_url = attendee.get(col_passport, "").strip()
+    stored_flight_details_url = attendee.get(col_flight_details, "").strip()
 
-        middle_name_match = fuzz.partial_ratio(stored_middle_name, middle_name) > 80
-
-        if stored_first_name_cleaned == first_name and middle_name_match and stored_last_name == last_name:
-            full_name = f"{stored_first_name_cleaned.title()} {stored_middle_name.title()} {stored_last_name.title()}".strip()
-
-            stored_departure = attendee.get(col_departure, "").strip()
-            stored_return = attendee.get(col_return, "").strip()
-
-            try:
-                stored_departure = datetime.datetime.strptime(stored_departure, "%m/%d/%Y").strftime("%Y-%m-%d")
-            except ValueError:
-                stored_departure = ""
-
-            try:
-                stored_return = datetime.datetime.strptime(stored_return, "%m/%d/%Y").strftime("%Y-%m-%d")
-            except ValueError:
-                stored_return = ""
-
-            food_allergies = attendee.get(col_food_allergies, "").strip()
-            other_dietary_restriction = attendee.get(col_other_dietary, "").strip()
-
-            if "Others" in food_allergies:
-                allergies_list = [item.strip() for item in food_allergies.split(",")]
-                allergies_list = [other_dietary_restriction if item == "Others" else item for item in allergies_list]
-                food_allergies = ", ".join(filter(None, allergies_list))
-
-            stored_passport_url = attendee.get(col_passport, "").strip()
-            stored_flight_details_url = attendee.get(col_flight_details, "").strip()
-
-            passport_url = stored_passport_url if stored_passport_url and stored_submission_id else None
-            flight_details_url = stored_flight_details_url if stored_flight_details_url and stored_submission_id else None
-
-            return jsonify({
-                "First Name": stored_first_name.title(),
-                "Middle Name": stored_middle_name.title(),
-                "Last Name": stored_last_name.title(),
-                "Full Name": full_name.title(),
-                "Birthday": stored_birthday,
-                "Email Address": attendee.get(col_email, ""),
-                "Room Type": attendee.get(col_room_type, ""),
-                "Departure Date": stored_departure,  
-                "Return Date": stored_return,  
-                "Emergency Contact Relationship": attendee.get(col_emergency_contact_relationship, ""),
-                "Emergency Contact First Name": attendee.get(col_emergency_contact_first_name, ""),
-                "Emergency Contact Last Name": attendee.get(col_emergency_contact_last_name, ""),
-                "Emergency Contact Phone": attendee.get(col_emergency_contact_phone, ""),
-                "Food Allergies and Dietary Restrictions": food_allergies,  
-                "Medical Conditions": attendee.get(col_medical_conditions, ""),  
-                "Accessibility Needs": attendee.get(col_accessibility_needs, ""),  
-                "Consent Privacy Policy": attendee.get(col_privacy_policy, ""),
-                "Consent Photography": attendee.get(col_photography_consent, ""),
-                "Passport URL": passport_url,
-                "Flight Details URL": flight_details_url,
-                "Delegates Role": attendee.get(col_delegates_role, "Not Specified") 
-            })
-
-    return jsonify({"error": "Attendee not found"}), 404
-
-def find_column(headers, column_name, optional=False):
-    """
-    Find the exact column name dynamically using unique format.
-    If optional=True, return None if not found.
-    """
-    for header in headers:
-        if header.split('|')[0].strip().lower() == column_name.lower():
-            return header
-    return None if optional else column_name
+    passport_url = stored_passport_url if stored_passport_url and stored_submission_id else None
+    flight_details_url = stored_flight_details_url if stored_flight_details_url and stored_submission_id else None
+    
+    # Return formatted JSON
+    return jsonify({
+        "First Name": stored_first_name,
+        "Middle Name": stored_middle_name,
+        "Last Name": stored_last_name,
+        "Full Name": full_name,
+        "Birthday": stored_birthday,
+        "Email Address": attendee.get(col_email, ""),
+        "Room Type": attendee.get(col_room_type, ""),
+        "Departure Date": stored_departure,  
+        "Return Date": stored_return,  
+        "Emergency Contact Relationship": attendee.get(col_emergency_contact_relationship, ""),
+        "Emergency Contact First Name": attendee.get(col_emergency_contact_first_name, ""),
+        "Emergency Contact Last Name": attendee.get(col_emergency_contact_last_name, ""),
+        "Emergency Contact Phone": attendee.get(col_emergency_contact_phone, ""),
+        "Food Allergies and Dietary Restrictions": food_allergies,  
+        "Medical Conditions": attendee.get(col_medical_conditions, ""),  
+        "Accessibility Needs": attendee.get(col_accessibility_needs, ""),  
+        "Consent Privacy Policy": attendee.get(col_privacy_policy, ""),
+        "Consent Photography": attendee.get(col_photography_consent, ""),
+        "Passport URL": passport_url,
+        "Flight Details URL": flight_details_url,
+        "Delegates Role": attendee.get(col_delegates_role, "Not Specified") 
+    })
 
 @app.route("/validate_passcode", methods=["POST"])
 def validate_passcode():
@@ -168,7 +278,7 @@ def validate_passcode():
 
 @app.route("/passport/<submission_id>")
 def get_passport_image(submission_id):
-    attendee = next((a for a in sheet.get_all_records() if a.get("Submission ID|hidden-1") == submission_id), None)
+    attendee = next((a for a in sheet.get_all_records() if str(a.get("Submission ID|hidden-1")) == submission_id), None)
     if not attendee:
         return jsonify({"error": "Attendee not found"}), 404
 
@@ -184,7 +294,7 @@ def get_passport_image(submission_id):
 
 @app.route("/flight_details/<submission_id>")
 def download_flight_details(submission_id):
-    attendee = next((a for a in sheet.get_all_records() if a.get("Submission ID|hidden-1") == submission_id), None)
+    attendee = next((a for a in sheet.get_all_records() if str(a.get("Submission ID|hidden-1")) == submission_id), None)
     if not attendee:
         return jsonify({"error": "Attendee not found"}), 404
 
