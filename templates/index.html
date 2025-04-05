@@ -317,11 +317,45 @@
           return;
         }
 
+        resultDiv.innerHTML = "";
+
         if (currentRole === HOTEL_ROLE) {
           displayHotelView(data, resultDiv);
         } else if (currentRole === AIRPORT_ROLE) {
           displayAirportView(data, resultDiv);
+        } else if (currentRole === ERC_ROLE) {
+          // For ERC role, we'll create a wrapper container
+          const ercContainer = document.createElement("div");
+          ercContainer.className = "erc-container";
+
+          // Create containers for both views
+          const hotelContainer = document.createElement("div");
+          hotelContainer.className = "hotel-view";
+          const airportContainer = document.createElement("div");
+          airportContainer.className = "airport-view";
+
+          // Add section headers
+          hotelContainer.innerHTML = `<h2 style="color: #800080; margin-top: 20px;">Hotel Information</h2>`;
+          airportContainer.innerHTML = `<h2 style="color: #800080; margin-top: 20px;">Flight Information</h2>`;
+
+          // Display both views
+          displayHotelView(data, hotelContainer);
+          displayAirportView(data, airportContainer);
+
+          // Append to ERC container
+          ercContainer.appendChild(hotelContainer);
+          ercContainer.appendChild(airportContainer);
+
+          // Append to main result
+          resultDiv.appendChild(ercContainer);
         }
+      }
+
+      function displayERCView(data, resultDiv) {
+        resultDiv.innerHTML = `
+              ${displayHotelView(data, resultDiv, true)}
+              ${displayAirportView(data, resultDiv, true)}
+          `;
       }
 
       function displayHotelView(data, resultDiv) {
@@ -374,6 +408,8 @@
             </div>
           </div>
         `;
+        if (returnHTML) return html;
+        resultDiv.innerHTML = html;
       }
 
       function displayAirportView(data, resultDiv) {
@@ -425,6 +461,8 @@
             </div>
           </div>
         `;
+        if (returnHTML) return html;
+        resultDiv.innerHTML = html;
       }
 
       function openModal(fileUrl) {
