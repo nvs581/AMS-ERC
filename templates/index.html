@@ -228,6 +228,19 @@
                 data["Consent Photography"]
               }</p>
             </div>
+
+            <div class="payment-column">
+              <h3>Proof of Payment for Upgraded Rooms</h3>
+              ${
+                data["Proof of Payment URL"]
+                  ? `<div class="payment-details-container">
+                        <a href="${data["Proof of Payment URL"]}" class="download-btn" target="_blank">Download Proof of Payment</a>
+                        <button class="view-btn" onclick="openModal('${data["Proof of Payment URL"]}')">View Proof of Payment</button>
+                      </div>`
+                  : "<p>No Proof of Payment Available.</p>"
+              }
+            </div>
+
           </div>
 
           <div id="passport-section">

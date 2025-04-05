@@ -195,6 +195,7 @@ def process_attendee_data(attendee, headers):
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
+    col_proof_of_payment = find_column(headers, "Proof of Payment|upload-3")
     
     # Basic attendee info
     stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
@@ -238,9 +239,11 @@ def process_attendee_data(attendee, headers):
     # Handle file URLs
     stored_passport_url = attendee.get(col_passport, "").strip()
     stored_flight_details_url = attendee.get(col_flight_details, "").strip()
+    stored_proof_of_payment_url = attendee.get(col_proof_of_payment, "").strip()
 
     passport_url = stored_passport_url if stored_passport_url and stored_submission_id else None
     flight_details_url = stored_flight_details_url if stored_flight_details_url and stored_submission_id else None
+    proof_of_payment_url = stored_proof_of_payment_url if stored_proof_of_payment_url and stored_submission_id else None
     
     # Return formatted JSON
     return jsonify({
@@ -264,6 +267,7 @@ def process_attendee_data(attendee, headers):
         "Consent Photography": attendee.get(col_photography_consent, ""),
         "Passport URL": passport_url,
         "Flight Details URL": flight_details_url,
+        "Proof of Payment URL": proof_of_payment_url,
         "Delegates Role": attendee.get(col_delegates_role, "Not Specified") 
     })
 
@@ -275,6 +279,26 @@ def validate_passcode():
     if entered_passcode == ACCESS_PASSCODE:
         return jsonify({"status": "success"})
     return jsonify({"status": "error", "message": "Incorrect passcode"}), 403
+
+@app.route("/proof_of_payment/<submission_id>")
+def download_proof_of_payment(submission_id):
+    attendee = next((a for a in sheet.get_all_records() if str(a.get("Submission ID|hidden-1")) == submission_id), None)
+    if not attendee:
+        return jsonify({"error": "Attendee not found"}), 404
+
+    proof_of_payment_url = attendee.get("Proof of Payment|upload-3", "").strip()
+    if not proof_of_payment_url:
+        return jsonify({"error": "Proof of Payment not found"}), 404
+
+    response = requests.get(proof_of_payment_url)
+    if response.status_code == 200:
+        return send_file(
+            BytesIO(response.content),
+            mimetype="application/pdf",  # Or whatever mime type matches the file
+            as_attachment=True,
+            download_name="proof_of_payment.pdf"
+        )
+    return jsonify({"error": "Proof of Payment not found"}), 404
 
 @app.route("/passport/<submission_id>")
 def get_passport_image(submission_id):

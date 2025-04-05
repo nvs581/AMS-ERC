@@ -79,6 +79,11 @@ button:hover {
   margin-top: 15px;
 }
 
+.payment-details-container {
+  text-align: center;
+  margin-top: 15px;
+}
+
 .download-btn,
 .view-btn {
   display: inline-block;
