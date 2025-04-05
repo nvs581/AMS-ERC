@@ -176,9 +176,7 @@
 
         // Update role indicator
         const roleText =
-          role === HOTEL_ROLE
-            ? "Hotel Staff"
-            : "Airport Transfers StaffAirport Transfers Staff";
+          role === HOTEL_ROLE ? "Hotel Staff" : "Airport Transfers Staff";
         document.getElementById(
           "current-role-indicator"
         ).innerHTML = `<p class="role-indicator">Logged in as: <strong>${roleText}</strong></p>`;
