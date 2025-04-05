@@ -159,6 +159,7 @@ def search_attendee():
     col_airline_departure = find_column(headers, "Airline|air-line-2")
     col_flight_num_departure = find_column(headers, "Flight Number|fn-2")
     col_departure_time_departure = find_column(headers, "Departure Time|deptime-2")
+    col_organization = find_column(headers, "Organization")
 
     if not col_submission_id or not col_first_name or not col_middle_name or not col_last_name or not col_birthday:
         return jsonify({"error": "Required columns not found in sheet"}), 500
@@ -238,6 +239,7 @@ def process_attendee_data(attendee, headers, role=None):
     col_airline_departure = find_column(headers, "Airline|air-line-2")
     col_flight_num_departure = find_column(headers, "Flight Number|fn-2")
     col_departure_time_departure = find_column(headers, "Departure Time|deptime-2")
+    col_organization = find_column(headers, "Organization")
     
     # Basic attendee info
     stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
@@ -304,6 +306,7 @@ def process_attendee_data(attendee, headers, role=None):
         "Age": age,
         "Birthday": formatted_birthday,
         "Email Address": attendee.get(col_email, ""),
+        "Organization": attendee.get(col_organization, ""),
         "Room Type": attendee.get(col_room_type, ""),
         "Departure Date": stored_departure,
         "Return Date": stored_return,
