@@ -329,14 +329,24 @@
       }
 
       function displayERCView(data, resultDiv) {
-        resultDiv.innerHTML = `
-              ${displayHotelView(data, resultDiv, true)}
-              ${displayAirportView(data, resultDiv, true)}
-          `;
+        // Create container for hotel info
+        const hotelContainer = document.createElement("div");
+        hotelContainer.className = "hotel-view";
+        displayHotelView(data, hotelContainer);
+
+        // Create container for airport info
+        const airportContainer = document.createElement("div");
+        airportContainer.className = "airport-view";
+        airportContainer.style.marginTop = "20px"; // Add spacing between sections
+        displayAirportView(data, airportContainer);
+
+        // Append both containers to result
+        resultDiv.appendChild(hotelContainer);
+        resultDiv.appendChild(airportContainer);
       }
 
-      function displayHotelView(data, resultDiv) {
-        resultDiv.innerHTML = `
+      function displayHotelView(data, container) {
+        container.innerHTML = `
           <div class="details-container">
             <div class="details-column">
               <h3>Personal Details</h3>
@@ -387,8 +397,8 @@
         `;
       }
 
-      function displayAirportView(data, resultDiv) {
-        resultDiv.innerHTML = `
+      function displayAirportView(data, container) {
+        container.innerHTML = `
           <div class="details-container">
             <div class="details-column">
               <h3>Passenger Information</h3>
