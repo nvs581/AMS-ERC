@@ -98,6 +98,12 @@ button:hover {
   padding-bottom: 5px;
 }
 
+.flight-info h4 {
+  margin-bottom: 10px;
+  color: #800080;
+  border-bottom: 2px solid #9797a8;
+}
+
 .download-btn,
 .view-btn {
   display: inline-block;
