@@ -336,7 +336,7 @@ def process_attendee_data(attendee, headers, role=None):
             "Middle Name": full_data["Middle Name"],
             "Last Name": full_data["Last Name"],
             "Full Name": full_data["Full Name"],
-            "Age": full_data["Age"],  # Show age instead of birthday
+            "Age": full_data["Age"],
             "Email Address": full_data["Email Address"],
             "Room Type": full_data["Room Type"],
             "Departure Date": full_data["Departure Date"],
