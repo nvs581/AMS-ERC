@@ -241,7 +241,7 @@
         let suggestionsHTML = "";
         suggestions.forEach((suggestion) => {
           suggestionsHTML += `
-            <div class="suggestion-item"
+            <div class="suggestion-item" 
                  data-submission-id="${suggestion.submission_id}"
                  data-first-name="${suggestion.first_name}"
                  data-middle-name="${suggestion.middle_name}"
@@ -325,6 +325,7 @@
           displayAirportView(data, resultDiv);
         } else if (currentRole === ERC_ROLE) {
           displayERCView(data, resultDiv);
+        }
       }
 
       function displayERCView(data, resultDiv) {
@@ -353,7 +354,7 @@
               <p><strong>Return Date:</strong> ${data["Return Date"]}</p>
               <p><strong>Delegates Role:</strong> ${data["Delegates Role"]}</p>
             </div>
-
+            
             <div class="details-column">
               <h3>Emergency Contact Details</h3>
               <p><strong>Emergency Contact First Name:</strong> ${
@@ -394,7 +395,7 @@
               <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
               <p><strong>Delegates Role:</strong> ${data["Delegates Role"]}</p>
             </div>
-
+            
             <div class="details-column">
               <h3>Flight Details</h3>
               ${
