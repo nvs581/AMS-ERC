@@ -241,7 +241,7 @@
         let suggestionsHTML = "";
         suggestions.forEach((suggestion) => {
           suggestionsHTML += `
-            <div class="suggestion-item" 
+            <div class="suggestion-item"
                  data-submission-id="${suggestion.submission_id}"
                  data-first-name="${suggestion.first_name}"
                  data-middle-name="${suggestion.middle_name}"
@@ -324,31 +324,7 @@
         } else if (currentRole === AIRPORT_ROLE) {
           displayAirportView(data, resultDiv);
         } else if (currentRole === ERC_ROLE) {
-          // For ERC role, we'll create a wrapper container
-          const ercContainer = document.createElement("div");
-          ercContainer.className = "erc-container";
-
-          // Create containers for both views
-          const hotelContainer = document.createElement("div");
-          hotelContainer.className = "hotel-view";
-          const airportContainer = document.createElement("div");
-          airportContainer.className = "airport-view";
-
-          // Add section headers
-          hotelContainer.innerHTML = `<h2 style="color: #800080; margin-top: 20px;">Hotel Information</h2>`;
-          airportContainer.innerHTML = `<h2 style="color: #800080; margin-top: 20px;">Flight Information</h2>`;
-
-          // Display both views
-          displayHotelView(data, hotelContainer);
-          displayAirportView(data, airportContainer);
-
-          // Append to ERC container
-          ercContainer.appendChild(hotelContainer);
-          ercContainer.appendChild(airportContainer);
-
-          // Append to main result
-          resultDiv.appendChild(ercContainer);
-        }
+          displayERCView(data, resultDiv);
       }
 
       function displayERCView(data, resultDiv) {
@@ -377,7 +353,7 @@
               <p><strong>Return Date:</strong> ${data["Return Date"]}</p>
               <p><strong>Delegates Role:</strong> ${data["Delegates Role"]}</p>
             </div>
-            
+
             <div class="details-column">
               <h3>Emergency Contact Details</h3>
               <p><strong>Emergency Contact First Name:</strong> ${
@@ -408,8 +384,6 @@
             </div>
           </div>
         `;
-        if (returnHTML) return html;
-        resultDiv.innerHTML = html;
       }
 
       function displayAirportView(data, resultDiv) {
@@ -420,7 +394,7 @@
               <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
               <p><strong>Delegates Role:</strong> ${data["Delegates Role"]}</p>
             </div>
-            
+
             <div class="details-column">
               <h3>Flight Details</h3>
               ${
@@ -461,8 +435,6 @@
             </div>
           </div>
         `;
-        if (returnHTML) return html;
-        resultDiv.innerHTML = html;
       }
 
       function openModal(fileUrl) {
