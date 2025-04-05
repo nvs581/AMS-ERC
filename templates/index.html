@@ -24,7 +24,9 @@
 
         <div class="role-buttons">
           <button id="hotel-staff-btn" class="role-btn">Hotel Staff</button>
-          <button id="airport-staff-btn" class="role-btn">Airport Staff</button>
+          <button id="airport-staff-btn" class="role-btn">
+            Airport Transfers Staff
+          </button>
         </div>
       </div>
 
@@ -114,7 +116,7 @@
         const roleTitle =
           role === HOTEL_ROLE
             ? "Hotel Staff Authentication"
-            : "Airport Staff Authentication";
+            : "Airport Transfers Staff Authentication";
         document.getElementById("role-title").textContent = roleTitle;
         document.getElementById("role-selection").style.display = "none";
         document.getElementById("password-section").style.display = "block";
@@ -173,7 +175,10 @@
         document.getElementById("password-section").style.display = "none";
 
         // Update role indicator
-        const roleText = role === HOTEL_ROLE ? "Hotel Staff" : "Airport Staff";
+        const roleText =
+          role === HOTEL_ROLE
+            ? "Hotel Staff"
+            : "Airport Transfers StaffAirport Transfers Staff";
         document.getElementById(
           "current-role-indicator"
         ).innerHTML = `<p class="role-indicator">Logged in as: <strong>${roleText}</strong></p>`;
