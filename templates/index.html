@@ -262,13 +262,60 @@
             <h3>Flight Details</h3>
             ${
               data["Flight Details URL"]
-                ? `<div class="flight-details-container">
-                      <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
-                      <button class="view-btn" onclick="openModal('${data["Flight Details URL"]}')">View Flight Details</button>
-                    </div>`
+                ? `<div class="flight-summary">
+                      ${
+                        data["air-line-1"]
+                          ? `<p><strong>Airline:</strong> ${data["air-line-1"]}</p>`
+                          : ""
+                      }
+                      ${
+                        data["fn-1"]
+                          ? `<p><strong>Flight Number:</strong> ${data["fn-1"]}</p>`
+                          : ""
+                      }
+                      ${
+                        data["Country of Origin"]
+                          ? `<p><strong>Country of Origin:</strong> ${data["Country of Origin"]}</p>`
+                          : ""
+                      }
+                      ${
+                        data["deptime-1"]
+                          ? `<p><strong>Departure Time:</strong> ${data["deptime-1"]}</p>`
+                          : ""
+                      }
+                      ${
+                        data["Arrival time @ \nDenpasar - Bali"]
+                          ? `<p><strong>Arrival Time (Bali):</strong> ${data["Arrival time @ \nDenpasar - Bali"]}</p>`
+                          : ""
+                      }
+                      ${
+                        data["air-line-2"]
+                          ? `<hr><p><strong>Airline (Return):</strong> ${data["air-line-2"]}</p>`
+                          : ""
+                      }
+                      ${
+                        data["fn-2"]
+                          ? `<p><strong>Flight Number (Return):</strong> ${data["fn-2"]}</p>`
+                          : ""
+                      }
+                      ${
+                        data["deptime-2"]
+                          ? `<p><strong>Departure Time (Return):</strong> ${data["deptime-2"]}</p>`
+                          : ""
+                      }
+                  </div>
+                  <div class="flight-details-container">
+                      <a href="${
+                        data["Flight Details URL"]
+                      }" class="download-btn" target="_blank">Download Flight Details</a>
+                      <button class="view-btn" onclick="openModal('${
+                        data["Flight Details URL"]
+                      }')">View Flight Details</button>
+                  </div>`
                 : "<p>No Flight Details Available.</p>"
             }
           </div>
+
         `;
 
           // Setup passport view button

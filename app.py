@@ -196,6 +196,17 @@ def process_attendee_data(attendee, headers):
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
     col_proof_of_payment = find_column(headers, "Proof of Payment|upload-3")
+
+    # 
+    col_airline_1 = find_column(headers, "Airline|air-line-1")
+    col_flight_number_1 = find_column(headers, "Flight Number|fn-1")
+    col_country_origin = find_column(headers, "Country of Origin")
+    col_departure_time_1 = find_column(headers, "Departure Time|deptime-1")
+    col_arrival_bali = find_column(headers, "arrival-bali")
+    col_airline_2 = find_column(headers, "Airline|air-line-2")
+    col_flight_number_2 = find_column(headers, "Flight Number|fn-2")
+    col_departure_time_2 = find_column(headers, "Departure Time|deptime-2")
+
     
     # Basic attendee info
     stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
@@ -203,6 +214,17 @@ def process_attendee_data(attendee, headers):
     stored_middle_name = attendee.get(col_middle_name, "").strip()
     stored_last_name = attendee.get(col_last_name, "").strip()
     stored_birthday = attendee.get(col_birthday, "").strip()
+
+    # 
+    airline_1 = attendee.get(col_airline_1, "").strip()
+    flight_number_1 = attendee.get(col_flight_number_1, "").strip()
+    country_origin = attendee.get(col_country_origin, "").strip()
+    departure_time_1 = attendee.get(col_departure_time_1, "").strip()
+    arrival_bali = attendee.get(col_arrival_bali, "").strip()
+    airline_2 = attendee.get(col_airline_2, "").strip()
+    flight_number_2 = attendee.get(col_flight_number_2, "").strip()
+    departure_time_2 = attendee.get(col_departure_time_2, "").strip()
+
     
     # Format full name
     full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
@@ -268,7 +290,15 @@ def process_attendee_data(attendee, headers):
         "Passport URL": passport_url,
         "Flight Details URL": flight_details_url,
         "Proof of Payment URL": proof_of_payment_url,
-        "Delegates Role": attendee.get(col_delegates_role, "Not Specified") 
+        "Delegates Role": attendee.get(col_delegates_role, "Not Specified"),
+        "Airline (Arrival)": airline_1,
+        "Flight Number (Arrival)": flight_number_1,
+        "Country of Origin": country_origin,
+        "Departure Time (Arrival)": departure_time_1,
+        "Arrival Time in Bali": arrival_bali,
+        "Airline (Departure)": airline_2,
+        "Flight Number (Departure)": flight_number_2,
+        "Departure Time (Departure)": departure_time_2
     })
 
 @app.route("/validate_passcode", methods=["POST"])
