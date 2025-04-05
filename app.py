@@ -20,7 +20,8 @@ CREDENTIALS_FILE = "/etc/secrets/credentials.json"
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME")
 PASSPORT_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_PASSPORT_FOLDER_ID")
 FLIGHT_DETAILS_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FLIGHT_DETAILS_FOLDER_ID")
-ACCESS_PASSCODE = os.getenv("ACCESS_PASSCODE")
+HOTEL_ACCESS_PASSCODE = os.getenv("HOTEL_ACCESS_PASSCODE")
+AIRPORT_ACCESS_PASSCODE = os.getenv("AIRPORT_ACCESS_PASSCODE")
 
 creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
 gc = gspread.authorize(creds)
@@ -92,7 +93,11 @@ def search_suggestions():
 def search_attendee():
     """
     Updated search endpoint to handle both submission_id and name-based searches
+    with role-based data filtering
     """
+    # Get role from query parameters
+    role = request.args.get("role", "").strip().lower()
+    
     # Check if searching by submission ID
     submission_id = str(request.args.get("submission_id", "").strip())
     
@@ -123,6 +128,14 @@ def search_attendee():
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
+    col_airline_arrival = find_column(headers, "Airline (Arrival)", optional=True)
+    col_flight_num_arrival = find_column(headers, "Flight Number (Arrival)", optional=True)
+    col_country_origin = find_column(headers, "Country of Origin", optional=True)
+    col_departure_time_arrival = find_column(headers, "Departure Time (Arrival)", optional=True)
+    col_arrival_time_bali = find_column(headers, "Arrival Time in Bali", optional=True)
+    col_airline_departure = find_column(headers, "Airline (Departure)", optional=True)
+    col_flight_num_departure = find_column(headers, "Flight Number (Departure)", optional=True)
+    col_departure_time_departure = find_column(headers, "Departure Time (Departure)", optional=True)
 
     if not col_submission_id or not col_first_name or not col_middle_name or not col_last_name or not col_birthday:
         return jsonify({"error": "Required columns not found in sheet"}), 500
@@ -133,8 +146,8 @@ def search_attendee():
             stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
             
             if stored_submission_id == submission_id:
-                # Process this attendee's data
-                return process_attendee_data(attendee, headers)
+                # Process this attendee's data with role filtering
+                return process_attendee_data(attendee, headers, role)
                 
         return jsonify({"error": "Attendee not found"}), 404
     
@@ -162,15 +175,14 @@ def search_attendee():
         middle_name_match = fuzz.partial_ratio(stored_middle_name, middle_name) > 80
 
         if stored_first_name_cleaned == first_name and middle_name_match and stored_last_name == last_name:
-            # Process this attendee's data
-            return process_attendee_data(attendee, headers)
+            # Process this attendee's data with role filtering
+            return process_attendee_data(attendee, headers, role)
 
     return jsonify({"error": "Attendee not found"}), 404
 
-def process_attendee_data(attendee, headers):
+def process_attendee_data(attendee, headers, role=None):
     """
-    Process attendee data and return formatted JSON response
-    Extracted to avoid code duplication
+    Process attendee data and return formatted JSON response filtered by role
     """
     # Find all column names
     col_submission_id = find_column(headers, "Submission ID|hidden-1")
@@ -191,10 +203,18 @@ def process_attendee_data(attendee, headers):
     col_emergency_contact_phone = find_column(headers, "Phone Number|phone-1")
     col_food_allergies = find_column(headers, "Food Allergies and Dietary Restrictions|checkbox-1")
     col_other_dietary = find_column(headers, "Other Food and Dietary Restriction|textarea-1")
-    col_privacy_policy = find_column(headers, "I agree to the event’s privacy policy and consent to the collection of my information for event purposes.|radio-1")
+    col_privacy_policy = find_column(headers, "I agree to the event's privacy policy and consent to the collection of my information for event purposes.|radio-1")
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
+    col_airline_arrival = find_column(headers, "Airline (Arrival)", optional=True)
+    col_flight_num_arrival = find_column(headers, "Flight Number (Arrival)", optional=True)
+    col_country_origin = find_column(headers, "Country of Origin", optional=True)
+    col_departure_time_arrival = find_column(headers, "Departure Time (Arrival)", optional=True)
+    col_arrival_time_bali = find_column(headers, "Arrival Time in Bali", optional=True)
+    col_airline_departure = find_column(headers, "Airline (Departure)", optional=True)
+    col_flight_num_departure = find_column(headers, "Flight Number (Departure)", optional=True)
+    col_departure_time_departure = find_column(headers, "Departure Time (Departure)", optional=True)
     
     # Basic attendee info
     stored_submission_id = str(attendee.get(col_submission_id, "")).strip()
@@ -242,8 +262,8 @@ def process_attendee_data(attendee, headers):
     passport_url = stored_passport_url if stored_passport_url and stored_submission_id else None
     flight_details_url = stored_flight_details_url if stored_flight_details_url and stored_submission_id else None
     
-    # Return formatted JSON
-    return jsonify({
+    # Create full data dictionary
+    full_data = {
         "First Name": stored_first_name,
         "Middle Name": stored_middle_name,
         "Last Name": stored_last_name,
@@ -251,30 +271,82 @@ def process_attendee_data(attendee, headers):
         "Birthday": stored_birthday,
         "Email Address": attendee.get(col_email, ""),
         "Room Type": attendee.get(col_room_type, ""),
-        "Departure Date": stored_departure,  
-        "Return Date": stored_return,  
+        "Departure Date": stored_departure,
+        "Return Date": stored_return,
         "Emergency Contact Relationship": attendee.get(col_emergency_contact_relationship, ""),
         "Emergency Contact First Name": attendee.get(col_emergency_contact_first_name, ""),
         "Emergency Contact Last Name": attendee.get(col_emergency_contact_last_name, ""),
         "Emergency Contact Phone": attendee.get(col_emergency_contact_phone, ""),
-        "Food Allergies and Dietary Restrictions": food_allergies,  
-        "Medical Conditions": attendee.get(col_medical_conditions, ""),  
-        "Accessibility Needs": attendee.get(col_accessibility_needs, ""),  
+        "Food Allergies and Dietary Restrictions": food_allergies,
+        "Medical Conditions": attendee.get(col_medical_conditions, ""),
+        "Accessibility Needs": attendee.get(col_accessibility_needs, ""),
         "Consent Privacy Policy": attendee.get(col_privacy_policy, ""),
         "Consent Photography": attendee.get(col_photography_consent, ""),
         "Passport URL": passport_url,
         "Flight Details URL": flight_details_url,
-        "Delegates Role": attendee.get(col_delegates_role, "Not Specified") 
-    })
+        "Delegates Role": attendee.get(col_delegates_role, "Not Specified"),
+        "Airline (Arrival)": attendee.get(col_airline_arrival, "") if col_airline_arrival else "",
+        "Flight Number (Arrival)": attendee.get(col_flight_num_arrival, "") if col_flight_num_arrival else "",
+        "Country of Origin": attendee.get(col_country_origin, "") if col_country_origin else "",
+        "Departure Time (Arrival)": attendee.get(col_departure_time_arrival, "") if col_departure_time_arrival else "",
+        "Arrival Time in Bali": attendee.get(col_arrival_time_bali, "") if col_arrival_time_bali else "",
+        "Airline (Departure)": attendee.get(col_airline_departure, "") if col_airline_departure else "",
+        "Flight Number (Departure)": attendee.get(col_flight_num_departure, "") if col_flight_num_departure else "",
+        "Departure Time (Departure)": attendee.get(col_departure_time_departure, "") if col_departure_time_departure else ""
+    }
+    
+    # Filter based on role
+    if role == "hotel":
+        filtered_data = {
+            "First Name": full_data["First Name"],
+            "Middle Name": full_data["Middle Name"],
+            "Last Name": full_data["Last Name"],
+            "Full Name": full_data["Full Name"],
+            "Email Address": full_data["Email Address"],
+            "Room Type": full_data["Room Type"],
+            "Departure Date": full_data["Departure Date"],
+            "Return Date": full_data["Return Date"],
+            "Emergency Contact Relationship": full_data["Emergency Contact Relationship"],
+            "Emergency Contact First Name": full_data["Emergency Contact First Name"],
+            "Emergency Contact Last Name": full_data["Emergency Contact Last Name"],
+            "Emergency Contact Phone": full_data["Emergency Contact Phone"],
+            "Food Allergies and Dietary Restrictions": full_data["Food Allergies and Dietary Restrictions"],
+            "Medical Conditions": full_data["Medical Conditions"],
+            "Accessibility Needs": full_data["Accessibility Needs"],
+            "Delegates Role": full_data["Delegates Role"],
+            "Passport URL": full_data["Passport URL"]
+        }
+    elif role == "airport":
+        filtered_data = {
+            "Full Name": full_data["Full Name"],
+            "Delegates Role": full_data["Delegates Role"],
+            "Flight Details URL": full_data["Flight Details URL"],
+            "Passport URL": full_data["Passport URL"],
+            "Airline (Arrival)": full_data["Airline (Arrival)"],
+            "Flight Number (Arrival)": full_data["Flight Number (Arrival)"],
+            "Country of Origin": full_data["Country of Origin"],
+            "Departure Time (Arrival)": full_data["Departure Time (Arrival)"],
+            "Arrival Time in Bali": full_data["Arrival Time in Bali"],
+            "Airline (Departure)": full_data["Airline (Departure)"],
+            "Flight Number (Departure)": full_data["Flight Number (Departure)"],
+            "Departure Time (Departure)": full_data["Departure Time (Departure)"]
+        }
+    else:
+        filtered_data = full_data  # Show all data if no role specified
+    
+    return jsonify(filtered_data)
 
-@app.route("/validate_passcode", methods=["POST"])
-def validate_passcode():
+@app.route("/validate_role_password", methods=["POST"])
+def validate_role_password():
     data = request.json
-    entered_passcode = data.get("passcode")
+    role = data.get("role")
+    entered_passcode = data.get("password")
 
-    if entered_passcode == ACCESS_PASSCODE:
+    if role == "hotel" and entered_passcode == HOTEL_ACCESS_PASSCODE:
         return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "Incorrect passcode"}), 403
+    elif role == "airport" and entered_passcode == AIRPORT_ACCESS_PASSCODE:
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "Incorrect password for this role"}), 403
 
 @app.route("/passport/<submission_id>")
 def get_passport_image(submission_id):

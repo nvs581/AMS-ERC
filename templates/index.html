@@ -16,21 +16,52 @@
   <body>
     <div class="container">
       <h1>RESET Summit 2025 Participant Information</h1>
-      <label for="search-input"
-        ><strong>Search Participants Name</strong></label
-      >
 
-      <div class="search-container">
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Start typing participant name..."
-          autocomplete="off"
-        />
-        <div id="suggestions-container" class="suggestions-container"></div>
+      <!-- Role Selection Interface -->
+      <div id="role-selection">
+        <h2>Staff Access Portal</h2>
+        <p>Please select your role to access participant information:</p>
+
+        <div class="role-buttons">
+          <button id="hotel-staff-btn" class="role-btn">Hotel Staff</button>
+          <button id="airport-staff-btn" class="role-btn">Airport Staff</button>
+        </div>
       </div>
 
-      <div id="result"></div>
+      <!-- Password Entry (Initially Hidden) -->
+      <div id="password-section" style="display: none">
+        <h3 id="role-title">Enter Password</h3>
+        <input
+          type="password"
+          id="role-password"
+          placeholder="Enter your access password"
+        />
+        <button id="submit-password">Submit</button>
+        <button id="back-to-roles" class="secondary-btn">Back</button>
+      </div>
+
+      <!-- Search Interface (Initially Hidden) -->
+      <div id="search-interface" style="display: none">
+        <div id="current-role-indicator"></div>
+        <div id="logout-section">
+          <button id="logout-btn" class="secondary-btn">Change Role</button>
+        </div>
+
+        <label for="search-input"
+          ><strong>Search Participants Name</strong></label
+        >
+        <div class="search-container">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Start typing participant name..."
+            autocomplete="off"
+          />
+          <div id="suggestions-container" class="suggestions-container"></div>
+        </div>
+
+        <div id="result"></div>
+      </div>
     </div>
 
     <div id="imageModal" class="modal" onclick="closeModal(event)">
@@ -39,11 +70,124 @@
     </div>
 
     <script>
+      // Role and Authentication Variables
+      let currentRole = null;
+      const HOTEL_ROLE = "hotel";
+      const AIRPORT_ROLE = "airport";
+
+      // Role Selection Logic
+      document
+        .getElementById("hotel-staff-btn")
+        .addEventListener("click", function () {
+          showPasswordSection(HOTEL_ROLE);
+        });
+
+      document
+        .getElementById("airport-staff-btn")
+        .addEventListener("click", function () {
+          showPasswordSection(AIRPORT_ROLE);
+        });
+
+      document
+        .getElementById("back-to-roles")
+        .addEventListener("click", function () {
+          document.getElementById("password-section").style.display = "none";
+          document.getElementById("role-selection").style.display = "block";
+          document.getElementById("role-password").value = "";
+        });
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", function () {
+          // Reset and return to role selection
+          currentRole = null;
+          document.getElementById("search-interface").style.display = "none";
+          document.getElementById("role-selection").style.display = "block";
+          document.getElementById("search-input").value = "";
+          document.getElementById("result").innerHTML = "";
+          document.getElementById("suggestions-container").innerHTML = "";
+          document.getElementById("suggestions-container").style.display =
+            "none";
+        });
+
+      function showPasswordSection(role) {
+        const roleTitle =
+          role === HOTEL_ROLE
+            ? "Hotel Staff Authentication"
+            : "Airport Staff Authentication";
+        document.getElementById("role-title").textContent = roleTitle;
+        document.getElementById("role-selection").style.display = "none";
+        document.getElementById("password-section").style.display = "block";
+        document.getElementById("role-password").focus();
+
+        // Store selected role temporarily
+        document
+          .getElementById("role-password")
+          .setAttribute("data-role", role);
+      }
+
+      // Password Validation
+      document
+        .getElementById("submit-password")
+        .addEventListener("click", function () {
+          validatePassword();
+        });
+
+      document
+        .getElementById("role-password")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            validatePassword();
+          }
+        });
+
+      function validatePassword() {
+        const password = document.getElementById("role-password").value;
+        const role = document
+          .getElementById("role-password")
+          .getAttribute("data-role");
+
+        fetch("/validate_role_password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: role, password: password }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              // Authentication successful
+              currentRole = role;
+              showSearchInterface(role);
+            } else {
+              alert("Incorrect password for this role. Please try again.");
+            }
+          })
+          .catch((error) => {
+            console.error("Authentication error:", error);
+            alert("An error occurred during authentication. Please try again.");
+          });
+      }
+
+      function showSearchInterface(role) {
+        // Hide password section
+        document.getElementById("password-section").style.display = "none";
+
+        // Update role indicator
+        const roleText = role === HOTEL_ROLE ? "Hotel Staff" : "Airport Staff";
+        document.getElementById(
+          "current-role-indicator"
+        ).innerHTML = `<p class="role-indicator">Logged in as: <strong>${roleText}</strong></p>`;
+
+        // Show search interface
+        document.getElementById("search-interface").style.display = "block";
+        document.getElementById("role-password").value = "";
+        document.getElementById("search-input").focus();
+      }
+
       // Variables for controlling search timing
       let debounceTimeout;
       const debounceTime = 300; // ms
 
-      // Search input event listener
       // Search input event listener
       document
         .getElementById("search-input")
@@ -137,7 +281,11 @@
 
       // Fetch participant details by submission ID
       function fetchParticipantDetails(submissionId) {
-        fetch(`/search?submission_id=${encodeURIComponent(submissionId)}`)
+        fetch(
+          `/search?submission_id=${encodeURIComponent(
+            submissionId
+          )}&role=${currentRole}`
+        )
           .then((response) => response.json())
           .then((data) => {
             displayParticipantDetails(data);
@@ -156,7 +304,7 @@
             firstName
           )}&middle_name=${encodeURIComponent(
             middleName
-          )}&last_name=${encodeURIComponent(lastName)}`
+          )}&last_name=${encodeURIComponent(lastName)}&role=${currentRole}`
         )
           .then((response) => response.json())
           .then((data) => {
@@ -169,13 +317,25 @@
           });
       }
 
-      // Display participant details (same as your original code)
+      // Display participant details based on role
       function displayParticipantDetails(data) {
         let resultDiv = document.getElementById("result");
         if (data.error) {
           resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
-        } else {
-          resultDiv.innerHTML = `
+          return;
+        }
+
+        // Display different content based on role
+        if (currentRole === HOTEL_ROLE) {
+          displayHotelView(data, resultDiv);
+        } else if (currentRole === AIRPORT_ROLE) {
+          displayAirportView(data, resultDiv);
+        }
+      }
+
+      // Hotel staff view - personal, emergency, health info and payments
+      function displayHotelView(data, resultDiv) {
+        resultDiv.innerHTML = `
           <div class="details-container">
             <div class="details-column">
               <h3>Personal Details</h3>
@@ -219,85 +379,74 @@
               }</p>
             </div>
 
-            <div class="details-column">
-              <h3>Consent & Privacy</h3>
-              <p><strong>Consent to Privacy Policy:</strong> ${
-                data["Consent Privacy Policy"]
-              }</p>
-              <p><strong>Photography & Video Consent:</strong> ${
-                data["Consent Photography"]
-              }</p>
+            <div class="payment-column">
+              <h3>Proof of Payment for Upgraded Rooms</h3>
+              ${
+                data["Proof of Payment URL"]
+                  ? `<div class="payment-details-container">
+                        <a href="${data["Proof of Payment URL"]}" class="download-btn" target="_blank">Download Proof of Payment</a>
+                        <button class="view-btn" onclick="openModal('${data["Proof of Payment URL"]}')">View Proof of Payment</button>
+                      </div>`
+                  : "<p>No Proof of Payment Available.</p>"
+              }
             </div>
           </div>
+        `;
+      }
 
-          <div id="passport-section">
-            <h3>Passport Image</h3>
-            ${
-              data["Passport URL"]
-                ? `<button id="view-passport">View Passport</button>
-                  <div id="passport-container" style="display: none; text-align: center;">
-                    <input type="password" id="passport-key" placeholder="Enter Passcode">
-                    <button id="submit-passport-key">Submit</button>
-                    <br>
-                    <img id="passport-image" src="${data["Passport URL"]}" width="200px" style="display: none; border-radius: 10%; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
-                  </div>`
-                : "<p>No Passport Image Available.</p>"
-            }
-          </div>
-
-          <div class="details-column">
-            <h3>Flight Details</h3>
-            ${
-              data["Flight Details URL"]
-                ? `<div class="flight-details-container">
+      // Airport staff view - only flight details
+      function displayAirportView(data, resultDiv) {
+        resultDiv.innerHTML = `
+          <div class="details-container">
+            <div class="details-column">
+              <h3>Passenger Information</h3>
+              <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
+              <p><strong>Delegates Role:</strong> ${data["Delegates Role"]}</p>
+            </div>
+            
+            <div class="details-column">
+              <h3>Flight Details</h3>
+              ${
+                data["Flight Details URL"]
+                  ? `
+                    <div class="flight-details-container">
                       <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
                       <button class="view-btn" onclick="openModal('${data["Flight Details URL"]}')">View Flight Details</button>
                     </div>`
-                : "<p>No Flight Details Available.</p>"
-            }
+                  : `<p>No Flight Details Document Available.</p>`
+              }
+              <div class="flight-info">
+                <h4>Arrival Flight Information</h4>
+                <p><strong>Airline:</strong> ${data["Airline (Arrival)"]}</p>
+                <p><strong>Flight Number:</strong> ${
+                  data["Flight Number (Arrival)"]
+                }</p>
+                <p><strong>Country of Origin:</strong> ${
+                  data["Country of Origin"]
+                }</p>
+                <p><strong>Departure Time:</strong> ${
+                  data["Departure Time (Arrival)"]
+                }</p>
+                <p><strong>Arrival Time in Bali:</strong> ${
+                  data["Arrival Time in Bali"]
+                }</p>
+              </div>
+              <div class="flight-info">
+                <h4>Departure Flight Information</h4>
+                <p><strong>Airline:</strong> ${data["Airline (Departure)"]}</p>
+                <p><strong>Flight Number:</strong> ${
+                  data["Flight Number (Departure)"]
+                }</p>
+                <p><strong>Departure Time:</strong> ${
+                  data["Departure Time (Departure)"]
+                }</p>
+              </div>
+            </div>
           </div>
         `;
-
-          // Setup passport view button
-          if (data["Passport URL"]) {
-            document
-              .getElementById("view-passport")
-              .addEventListener("click", function () {
-                document.getElementById("passport-container").style.display =
-                  "block";
-              });
-
-            document
-              .getElementById("submit-passport-key")
-              .addEventListener("click", function () {
-                let enteredKey = document.getElementById("passport-key").value;
-                fetch("/validate_passcode", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ passcode: enteredKey }),
-                })
-                  .then((response) => response.json())
-                  .then((responseData) => {
-                    if (responseData.status === "success") {
-                      let passportImage =
-                        document.getElementById("passport-image");
-                      let storedPassportUrl = data["Passport URL"];
-                      if (storedPassportUrl) {
-                        passportImage.src = storedPassportUrl;
-                        passportImage.style.display = "block";
-                      } else {
-                        alert("No matching Passport file found.");
-                      }
-                    } else {
-                      alert("Incorrect passcode!");
-                    }
-                  });
-              });
-          }
-        }
       }
 
-      // Modal functions (unchanged)
+      // Modal functions
       function openModal(fileUrl) {
         let modalContent = document.getElementById("modalContent");
 
