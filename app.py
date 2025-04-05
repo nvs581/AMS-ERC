@@ -28,6 +28,29 @@ gc = gspread.authorize(creds)
 sheet = gc.open(SPREADSHEET_NAME).sheet1  
 drive_service = build("drive", "v3", credentials=creds)
 
+def calculate_age(birth_date_str, date_format="%Y-%m-%d"):
+    """
+    Calculate age from birth date string
+    Returns formatted string with age or "N/A" if invalid
+    """
+    if not birth_date_str:
+        return "N/A"
+    
+    try:
+        birth_date = datetime.datetime.strptime(birth_date_str, date_format).date()
+        today = datetime.date.today()
+        
+        # Calculate base age
+        age = today.year - birth_date.year
+        
+        # Adjust if birthday hasn't occurred yet this year
+        if (today.month, today.day) < (birth_date.month, birth_date.day):
+            age -= 1
+            
+        return f"{age} years"
+    except (ValueError, TypeError):
+        return "N/A"
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -128,14 +151,14 @@ def search_attendee():
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
     col_flight_details = find_column(headers, "Flight Details|upload-1")
-    col_airline_arrival = find_column(headers, "Airline (Arrival)", optional=True)
-    col_flight_num_arrival = find_column(headers, "Flight Number (Arrival)", optional=True)
-    col_country_origin = find_column(headers, "Country of Origin", optional=True)
-    col_departure_time_arrival = find_column(headers, "Departure Time (Arrival)", optional=True)
-    col_arrival_time_bali = find_column(headers, "Arrival Time in Bali", optional=True)
-    col_airline_departure = find_column(headers, "Airline (Departure)", optional=True)
-    col_flight_num_departure = find_column(headers, "Flight Number (Departure)", optional=True)
-    col_departure_time_departure = find_column(headers, "Departure Time (Departure)", optional=True)
+    col_airline_arrival = find_column(headers, "Airline|air-line-1")
+    col_flight_num_arrival = find_column(headers, "Flight Number|fn-1")
+    col_country_origin = find_column(headers, "Country of Origin")
+    col_departure_time_arrival = find_column(headers, "Departure Time|deptime-1")
+    col_arrival_time_bali = find_column(headers, "arrival-bali")
+    col_airline_departure = find_column(headers, "Airline|air-line-2")
+    col_flight_num_departure = find_column(headers, "Flight Number|fn-2")
+    col_departure_time_departure = find_column(headers, "Departure Time|deptime-2")
 
     if not col_submission_id or not col_first_name or not col_middle_name or not col_last_name or not col_birthday:
         return jsonify({"error": "Required columns not found in sheet"}), 500
@@ -206,7 +229,6 @@ def process_attendee_data(attendee, headers, role=None):
     col_privacy_policy = find_column(headers, "I agree to the event's privacy policy and consent to the collection of my information for event purposes.|radio-1")
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
-    # 
     col_flight_details = find_column(headers, "Flight Details|upload-1")
     col_airline_arrival = find_column(headers, "Airline|air-line-1")
     col_flight_num_arrival = find_column(headers, "Flight Number|fn-1")
@@ -227,11 +249,21 @@ def process_attendee_data(attendee, headers, role=None):
     # Format full name
     full_name = f"{stored_first_name} {stored_middle_name} {stored_last_name}".strip()
     
-    # Format birthday
+    # Calculate age from birthday
     try:
-        stored_birthday = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").strftime("%Y-%m-%d")
+        # First try parsing in the original format (MM/DD/YYYY)
+        birth_date = datetime.datetime.strptime(stored_birthday, "%m/%d/%Y").date()
+        age = calculate_age(stored_birthday, "%m/%d/%Y")
+        formatted_birthday = birth_date.strftime("%Y-%m-%d")
     except ValueError:
-        stored_birthday = ""
+        try:
+            # If that fails, try parsing in ISO format (YYYY-MM-DD)
+            birth_date = datetime.datetime.strptime(stored_birthday, "%Y-%m-%d").date()
+            age = calculate_age(stored_birthday, "%Y-%m-%d")
+            formatted_birthday = stored_birthday
+        except ValueError:
+            age = "N/A"
+            formatted_birthday = ""
     
     # Format dates
     stored_departure = attendee.get(col_departure, "").strip()
@@ -269,7 +301,8 @@ def process_attendee_data(attendee, headers, role=None):
         "Middle Name": stored_middle_name,
         "Last Name": stored_last_name,
         "Full Name": full_name,
-        "Birthday": stored_birthday,
+        "Age": age,
+        "Birthday": formatted_birthday,
         "Email Address": attendee.get(col_email, ""),
         "Room Type": attendee.get(col_room_type, ""),
         "Departure Date": stored_departure,
@@ -303,6 +336,7 @@ def process_attendee_data(attendee, headers, role=None):
             "Middle Name": full_data["Middle Name"],
             "Last Name": full_data["Last Name"],
             "Full Name": full_data["Full Name"],
+            "Age": full_data["Age"],  # Show age instead of birthday
             "Email Address": full_data["Email Address"],
             "Room Type": full_data["Room Type"],
             "Departure Date": full_data["Departure Date"],
