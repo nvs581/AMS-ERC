@@ -207,7 +207,6 @@ def process_attendee_data(attendee, headers, role=None):
     col_photography_consent = find_column(headers, "I grant permission for event photography and video recordings that may include my image.|radio-2")
     col_passport = find_column(headers, "Passport|upload-2")
     # 
-    col_flight_details = find_column(headers, "Flight Details|upload-1")
     col_airline_arrival = find_column(headers, "Airline|air-line-1", optional=True)
     col_flight_num_arrival = find_column(headers, "Flight Number|fn-1", optional=True)
     col_country_origin = find_column(headers, "Country of Origin", optional=True)
@@ -295,7 +294,7 @@ def process_attendee_data(attendee, headers, role=None):
         "Flight Number (Departure)": attendee.get(col_flight_num_departure, "") if col_flight_num_departure else "",
         "Departure Time (Departure)": attendee.get(col_departure_time_departure, "") if col_departure_time_departure else ""
     }
-    
+        
     # Filter based on role
     if role == "hotel":
         filtered_data = {
