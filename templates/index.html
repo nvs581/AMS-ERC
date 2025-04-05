@@ -16,21 +16,51 @@
   <body>
     <div class="container">
       <h1>RESET Summit 2025 Participant Information</h1>
-      <label for="search-input"
-        ><strong>Search Participants Name</strong></label
-      >
 
-      <div class="search-container">
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Start typing participant name..."
-          autocomplete="off"
-        />
-        <div id="suggestions-container" class="suggestions-container"></div>
+      <div id="role-selection">
+        <h2>Staff Access Portal</h2>
+        <p>Please select your role to access participant information:</p>
+
+        <div class="role-buttons">
+          <button id="hotel-staff-btn" class="role-btn">Hotel Staff</button>
+          <button id="airport-staff-btn" class="role-btn">
+            Airport Transfers Staff
+          </button>
+        </div>
       </div>
 
-      <div id="result"></div>
+      <div id="password-section" style="display: none">
+        <h3 id="role-title">Enter Password</h3>
+        <input
+          type="password"
+          id="role-password"
+          placeholder="Enter your access password"
+        />
+        <button id="submit-password">Submit</button>
+        <button id="back-to-roles" class="secondary-btn">Back</button>
+      </div>
+
+      <div id="search-interface" style="display: none">
+        <div id="current-role-indicator"></div>
+        <div id="logout-section">
+          <button id="logout-btn" class="secondary-btn">Change Role</button>
+        </div>
+
+        <label for="search-input"
+          ><strong>Search Participants Name</strong></label
+        >
+        <div class="search-container">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Start typing participant name..."
+            autocomplete="off"
+          />
+          <div id="suggestions-container" class="suggestions-container"></div>
+        </div>
+
+        <div id="result"></div>
+      </div>
     </div>
 
     <div id="imageModal" class="modal" onclick="closeModal(event)">
@@ -39,19 +69,121 @@
     </div>
 
     <script>
-      // Variables for controlling search timing
-      let debounceTimeout;
-      const debounceTime = 300; // ms
+      let currentRole = null;
+      const HOTEL_ROLE = "hotel";
+      const AIRPORT_ROLE = "airport";
 
-      // Search input event listener
-      // Search input event listener
+      document
+        .getElementById("hotel-staff-btn")
+        .addEventListener("click", function () {
+          showPasswordSection(HOTEL_ROLE);
+        });
+
+      document
+        .getElementById("airport-staff-btn")
+        .addEventListener("click", function () {
+          showPasswordSection(AIRPORT_ROLE);
+        });
+
+      document
+        .getElementById("back-to-roles")
+        .addEventListener("click", function () {
+          document.getElementById("password-section").style.display = "none";
+          document.getElementById("role-selection").style.display = "block";
+          document.getElementById("role-password").value = "";
+        });
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", function () {
+          currentRole = null;
+          document.getElementById("search-interface").style.display = "none";
+          document.getElementById("role-selection").style.display = "block";
+          document.getElementById("search-input").value = "";
+          document.getElementById("result").innerHTML = "";
+          document.getElementById("suggestions-container").innerHTML = "";
+          document.getElementById("suggestions-container").style.display =
+            "none";
+        });
+
+      function showPasswordSection(role) {
+        const roleTitle =
+          role === HOTEL_ROLE
+            ? "Hotel Staff Authentication"
+            : "Airport Transfers Staff Authentication";
+        document.getElementById("role-title").textContent = roleTitle;
+        document.getElementById("role-selection").style.display = "none";
+        document.getElementById("password-section").style.display = "block";
+        document.getElementById("role-password").focus();
+
+        document
+          .getElementById("role-password")
+          .setAttribute("data-role", role);
+      }
+
+      document
+        .getElementById("submit-password")
+        .addEventListener("click", function () {
+          validatePassword();
+        });
+
+      document
+        .getElementById("role-password")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            validatePassword();
+          }
+        });
+
+      function validatePassword() {
+        const password = document.getElementById("role-password").value;
+        const role = document
+          .getElementById("role-password")
+          .getAttribute("data-role");
+
+        fetch("/validate_role_password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: role, password: password }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              currentRole = role;
+              showSearchInterface(role);
+            } else {
+              alert("Incorrect password for this role. Please try again.");
+            }
+          })
+          .catch((error) => {
+            console.error("Authentication error:", error);
+            alert("An error occurred during authentication. Please try again.");
+          });
+      }
+
+      function showSearchInterface(role) {
+        document.getElementById("password-section").style.display = "none";
+
+        const roleText =
+          role === HOTEL_ROLE ? "Hotel Staff" : "Airport Transfers Staff";
+        document.getElementById(
+          "current-role-indicator"
+        ).innerHTML = `<p class="role-indicator">Logged in as: <strong>${roleText}</strong></p>`;
+
+        document.getElementById("search-interface").style.display = "block";
+        document.getElementById("role-password").value = "";
+        document.getElementById("search-input").focus();
+      }
+
+      let debounceTimeout;
+      const debounceTime = 300;
+
       document
         .getElementById("search-input")
         .addEventListener("input", function () {
           clearTimeout(debounceTimeout);
           const query = this.value.trim();
 
-          // Clear and hide suggestions container if query is too short
           if (query.length < 2) {
             document.getElementById("suggestions-container").innerHTML = "";
             document.getElementById("suggestions-container").style.display =
@@ -59,7 +191,6 @@
             return;
           }
 
-          // Set display to block BEFORE fetching suggestions
           document.getElementById("suggestions-container").style.display =
             "block";
           document.getElementById("suggestions-container").innerHTML =
@@ -70,7 +201,6 @@
           }, debounceTime);
         });
 
-      // Fetch search suggestions as user types
       function fetchSuggestions(query) {
         fetch(`/search_suggestions?query=${encodeURIComponent(query)}`)
           .then((response) => response.json())
@@ -82,7 +212,6 @@
           });
       }
 
-      // Display suggestions in dropdown
       function displaySuggestions(suggestions) {
         const suggestionsContainer = document.getElementById(
           "suggestions-container"
@@ -111,22 +240,18 @@
         suggestionsContainer.innerHTML = suggestionsHTML;
         suggestionsContainer.style.display = "block";
 
-        // Add click event listeners to suggestions
         document.querySelectorAll(".suggestion-item").forEach((item) => {
           item.addEventListener("click", function () {
             const submissionId = this.getAttribute("data-submission-id");
-            // If using submission ID approach:
             if (submissionId) {
               fetchParticipantDetails(submissionId);
             } else {
-              // Fallback to name-based search
               const firstName = this.getAttribute("data-first-name");
               const middleName = this.getAttribute("data-middle-name");
               const lastName = this.getAttribute("data-last-name");
               fetchParticipantDetailsByName(firstName, middleName, lastName);
             }
 
-            // Clear search and suggestions
             document.getElementById("search-input").value =
               this.textContent.trim();
             document.getElementById("suggestions-container").style.display =
@@ -135,28 +260,11 @@
         });
       }
 
-      // Fetch participant details by submission ID
       function fetchParticipantDetails(submissionId) {
-        fetch(`/search?submission_id=${encodeURIComponent(submissionId)}`)
-          .then((response) => response.json())
-          .then((data) => {
-            displayParticipantDetails(data);
-          })
-          .catch((error) => {
-            console.error("Error fetching attendee details:", error);
-            document.getElementById("result").innerHTML =
-              "<p style='color: red;'>An error occurred while fetching details. Please try again.</p>";
-          });
-      }
-
-      // Fallback: Fetch participant details by name
-      function fetchParticipantDetailsByName(firstName, middleName, lastName) {
         fetch(
-          `/search?first_name=${encodeURIComponent(
-            firstName
-          )}&middle_name=${encodeURIComponent(
-            middleName
-          )}&last_name=${encodeURIComponent(lastName)}`
+          `/search?submission_id=${encodeURIComponent(
+            submissionId
+          )}&role=${currentRole}`
         )
           .then((response) => response.json())
           .then((data) => {
@@ -169,13 +277,41 @@
           });
       }
 
-      // Display participant details (same as your original code)
+      function fetchParticipantDetailsByName(firstName, middleName, lastName) {
+        fetch(
+          `/search?first_name=${encodeURIComponent(
+            firstName
+          )}&middle_name=${encodeURIComponent(
+            middleName
+          )}&last_name=${encodeURIComponent(lastName)}&role=${currentRole}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            displayParticipantDetails(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching attendee details:", error);
+            document.getElementById("result").innerHTML =
+              "<p style='color: red;'>An error occurred while fetching details. Please try again.</p>";
+          });
+      }
+
       function displayParticipantDetails(data) {
         let resultDiv = document.getElementById("result");
         if (data.error) {
           resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
-        } else {
-          resultDiv.innerHTML = `
+          return;
+        }
+
+        if (currentRole === HOTEL_ROLE) {
+          displayHotelView(data, resultDiv);
+        } else if (currentRole === AIRPORT_ROLE) {
+          displayAirportView(data, resultDiv);
+        }
+      }
+
+      function displayHotelView(data, resultDiv) {
+        resultDiv.innerHTML = `
           <div class="details-container">
             <div class="details-column">
               <h3>Personal Details</h3>
@@ -183,7 +319,11 @@
               <p><strong>Middle Name:</strong> ${data["Middle Name"]}</p>
               <p><strong>Last Name:</strong> ${data["Last Name"]}</p>
               <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
+              <p><strong>Age:</strong> ${data["Age"]}</p>
               <p><strong>Email Address:</strong> ${data["Email Address"]}</p>
+              <p><strong>Organization:</strong> ${
+                data["Organization"] || "Not specified"
+              }</p>
               <p><strong>Room Type:</strong> ${data["Room Type"]}</p>
               <p><strong>Departure Date:</strong> ${data["Departure Date"]}</p>
               <p><strong>Return Date:</strong> ${data["Return Date"]}</p>
@@ -219,16 +359,6 @@
               }</p>
             </div>
 
-            <div class="details-column">
-              <h3>Consent & Privacy</h3>
-              <p><strong>Consent to Privacy Policy:</strong> ${
-                data["Consent Privacy Policy"]
-              }</p>
-              <p><strong>Photography & Video Consent:</strong> ${
-                data["Consent Photography"]
-              }</p>
-            </div>
-
             <div class="payment-column">
               <h3>Proof of Payment for Upgraded Rooms</h3>
               ${
@@ -240,110 +370,61 @@
                   : "<p>No Proof of Payment Available.</p>"
               }
             </div>
-
           </div>
-
-          <div id="passport-section">
-            <h3>Passport Image</h3>
-            ${
-              data["Passport URL"]
-                ? `<button id="view-passport">View Passport</button>
-                  <div id="passport-container" style="display: none; text-align: center;">
-                    <input type="password" id="passport-key" placeholder="Enter Passcode">
-                    <button id="submit-passport-key">Submit</button>
-                    <br>
-                    <img id="passport-image" src="${data["Passport URL"]}" width="200px" style="display: none; border-radius: 10%; cursor: pointer; margin: auto;" onclick="openModal(this.src)">
-                  </div>`
-                : "<p>No Passport Image Available.</p>"
-            }
-          </div>
-
-          <div class="details-column">
-            <h3>Flight Details</h3>
-            ${
-              data["Flight Details URL"]
-                ? `
-                  <div class="flight-details-container">
-                    <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
-                    <button class="view-btn" onclick="openModal('${data["Flight Details URL"]}')">View Flight Details</button>
-                  </div>
-                  <div class="flight-info">
-                    <h4>Arrival Flight Information</h4>
-                    <p><strong>Airline:</strong> ${data["Airline (Arrival)"]}</p>
-                    <p><strong>Flight Number:</strong> ${data["Flight Number (Arrival)"]}</p>
-                    <p><strong>Country of Origin:</strong> ${data["Country of Origin"]}</p>
-                    <p><strong>Departure Time:</strong> ${data["Departure Time (Arrival)"]}</p>
-                    <p><strong>Arrival Time in Bali:</strong> ${data["Arrival Time in Bali"]}</p>
-                  </div>
-                  <div class="flight-info">
-                    <h4>Departure Flight Information</h4>
-                    <p><strong>Airline:</strong> ${data["Airline (Departure)"]}</p>
-                    <p><strong>Flight Number:</strong> ${data["Flight Number (Departure)"]}</p>
-                    <p><strong>Departure Time:</strong> ${data["Departure Time (Departure)"]}</p>
-                  </div>
-                `
-                : `
-                  <p>No Flight Details Available.</p>
-                  <div class="flight-info">
-                    <h4>Arrival Flight Information</h4>
-                    <p><strong>Airline:</strong> ${data["Airline (Arrival)"]}</p>
-                    <p><strong>Flight Number:</strong> ${data["Flight Number (Arrival)"]}</p>
-                    <p><strong>Country of Origin:</strong> ${data["Country of Origin"]}</p>
-                    <p><strong>Departure Time:</strong> ${data["Departure Time (Arrival)"]}</p>
-                    <p><strong>Arrival Time in Bali:</strong> ${data["Arrival Time in Bali"]}</p>
-                  </div>
-                  <div class="flight-info">
-                    <h4>Departure Flight Information</h4>
-                    <p><strong>Airline:</strong> ${data["Airline (Departure)"]}</p>
-                    <p><strong>Flight Number:</strong> ${data["Flight Number (Departure)"]}</p>
-                    <p><strong>Departure Time:</strong> ${data["Departure Time (Departure)"]}</p>
-                  </div>
-                `
-            }
-          </div>
-
         `;
-
-          // Setup passport view button
-          if (data["Passport URL"]) {
-            document
-              .getElementById("view-passport")
-              .addEventListener("click", function () {
-                document.getElementById("passport-container").style.display =
-                  "block";
-              });
-
-            document
-              .getElementById("submit-passport-key")
-              .addEventListener("click", function () {
-                let enteredKey = document.getElementById("passport-key").value;
-                fetch("/validate_passcode", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ passcode: enteredKey }),
-                })
-                  .then((response) => response.json())
-                  .then((responseData) => {
-                    if (responseData.status === "success") {
-                      let passportImage =
-                        document.getElementById("passport-image");
-                      let storedPassportUrl = data["Passport URL"];
-                      if (storedPassportUrl) {
-                        passportImage.src = storedPassportUrl;
-                        passportImage.style.display = "block";
-                      } else {
-                        alert("No matching Passport file found.");
-                      }
-                    } else {
-                      alert("Incorrect passcode!");
-                    }
-                  });
-              });
-          }
-        }
       }
 
-      // Modal functions (unchanged)
+      function displayAirportView(data, resultDiv) {
+        resultDiv.innerHTML = `
+          <div class="details-container">
+            <div class="details-column">
+              <h3>Passenger Information</h3>
+              <p><strong>Full Name:</strong> ${data["Full Name"]}</p>
+              <p><strong>Delegates Role:</strong> ${data["Delegates Role"]}</p>
+            </div>
+            
+            <div class="details-column">
+              <h3>Flight Details</h3>
+              ${
+                data["Flight Details URL"]
+                  ? `
+                    <div class="flight-details-container">
+                      <a href="${data["Flight Details URL"]}" class="download-btn" target="_blank">Download Flight Details</a>
+                      <button class="view-btn" onclick="openModal('${data["Flight Details URL"]}')">View Flight Details</button>
+                    </div>`
+                  : `<p>No Flight Details Document Available.</p>`
+              }
+              <div class="flight-info">
+                <h4>Arrival Flight Information</h4>
+                <p><strong>Airline:</strong> ${data["Airline (Arrival)"]}</p>
+                <p><strong>Flight Number:</strong> ${
+                  data["Flight Number (Arrival)"]
+                }</p>
+                <p><strong>Country of Origin:</strong> ${
+                  data["Country of Origin"]
+                }</p>
+                <p><strong>Departure Time:</strong> ${
+                  data["Departure Time (Arrival)"]
+                }</p>
+                <p><strong>Arrival Time in Bali:</strong> ${
+                  data["Arrival Time in Bali"]
+                }</p>
+              </div>
+              <div class="flight-info">
+                <h4>Departure Flight Information</h4>
+                <p><strong>Airline:</strong> ${data["Airline (Departure)"]}</p>
+                <p><strong>Flight Number:</strong> ${
+                  data["Flight Number (Departure)"]
+                }</p>
+                <p><strong>Departure Time:</strong> ${
+                  data["Departure Time (Departure)"]
+                }</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       function openModal(fileUrl) {
         let modalContent = document.getElementById("modalContent");
 
@@ -368,7 +449,6 @@
         }
       }
 
-      // Close suggestions when clicking outside
       document.addEventListener("click", function (event) {
         if (!event.target.closest(".search-container")) {
           document.getElementById("suggestions-container").style.display =
